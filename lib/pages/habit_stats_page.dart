@@ -182,11 +182,11 @@ class HabitStatsPage extends StatelessWidget {
                   bg = Colors.grey.shade900;
                   border = Colors.grey.shade800;
                 } else if (d.progress >= 1.0) {
-                  bg = Colors.greenAccent;
+                  bg = Colors.greenAccent;       // FULLFØRT
                 } else if (d.progress > 0.0) {
-                  bg = Colors.tealAccent.withOpacity(0.7);
+                  bg = Colors.amberAccent;       // DELVIS
                 } else {
-                  bg = Colors.grey.shade700;
+                  bg = Colors.grey.shade700;     // INGEN REGISTRERING
                 }
 
                 return Container(
@@ -240,9 +240,9 @@ class HabitStatsPage extends StatelessWidget {
         const SizedBox(width: 4),
         const Text('Fullført'),
         const SizedBox(width: 12),
-        box(Colors.tealAccent),
+        box(Colors.amberAccent),
         const SizedBox(width: 4),
-        const Text('Delvis (for tellende vaner)'),
+        const Text('Delvis fullført'),
         const SizedBox(width: 12),
         box(Colors.grey),
         const SizedBox(width: 4),
@@ -273,18 +273,8 @@ class HabitStatsPage extends StatelessWidget {
 
     final int year = yearStats.first.year;
     const monthNames = <String>[
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
+      'Jan','Feb','Mar','Apr','Mai','Jun',
+      'Jul','Aug','Sep','Okt','Nov','Des'
     ];
 
     return Card(
@@ -308,16 +298,10 @@ class HabitStatsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
-                        SizedBox(
-                          width: 40,
-                          child: Text(label),
-                        ),
+                        SizedBox(width: 40, child: Text(label)),
                         const SizedBox(width: 8),
                         const Expanded(
-                          child: Text(
-                            'Ingen aktive dager',
-                            style: TextStyle(fontSize: 12),
-                          ),
+                          child: Text('Ingen aktive dager'),
                         ),
                       ],
                     ),
@@ -328,10 +312,7 @@ class HabitStatsPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 40,
-                        child: Text(label),
-                      ),
+                      SizedBox(width: 40, child: Text(label)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: LinearProgressIndicator(
@@ -340,10 +321,7 @@ class HabitStatsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '$percent%',
-                        style: const TextStyle(fontSize: 12),
-                      ),
+                      Text('$percent%', style: const TextStyle(fontSize: 12)),
                       const SizedBox(width: 8),
                       Text(
                         '${m.completedDays}/${m.activeDays}',
