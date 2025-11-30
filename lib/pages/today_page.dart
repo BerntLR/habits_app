@@ -1,76 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../services/habit_service.dart';
 import '../models/habit.dart';
+import '../services/habit_service.dart';
 
-class TodayPage extends StatelessWidget {
+class TodayPage extends StatefulWidget {
   const TodayPage({super.key});
+
+  @override
+  State<TodayPage> createState() => _TodayPageState();
+}
+
+class _TodayPageState extends State<TodayPage> {
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = _normalize(DateTime.now());
+  }
+
+  DateTime _normalize(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  bool get _isToday {
+    final now = _normalize(DateTime.now());
+    return now.year == _selectedDate.year &&
+        now.month == _selectedDate.month &&
+        now.day == _selectedDate.day;
+  }
+
+  void _changeDay(int delta) {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: delta));
+    });
+  }
+
+  String _weekdayName(int weekday) {
+    const names = <String>[
+      'Man',
+      'Tir',
+      'Ons',
+      'Tor',
+      'Fre',
+      'Lor',
+      'Son',
+    ];
+    return names[weekday - 1];
+  }
+
+  String _dateLabel(DateTime d) {
+    return '${_weekdayName(d.weekday)} ${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final service = context.watch<HabitService>();
-    final today = DateTime.now();
 
-    final todaysHabits = service.habitsForDate(today);
-
-    final List<Habit> sortedHabits = List<Habit>.from(todaysHabits);
-
-    sortedHabits.sort((a, b) {
-      if (a.type == HabitType.boolean && b.type != HabitType.boolean) {
-        return -1;
-      }
-      if (a.type != HabitType.boolean && b.type == HabitType.boolean) {
-        return 1;
-      }
-
-      if (a.type == HabitType.boolean && b.type == HabitType.boolean) {
-        final aDone = service.isHabitDone(a.id, today);
-        final bDone = service.isHabitDone(b.id, today);
-
-        if (aDone == bDone) return 0;
-        return aDone ? 1 : -1;
-      }
-
-      final aCount = service.countForHabit(a.id, today);
-      final bCount = service.countForHabit(b.id, today);
-
-      final double aProgress = a.targetValue > 0
-          ? (aCount / a.targetValue).clamp(0.0, 1.0)
-          : 0.0;
-      final double bProgress = b.targetValue > 0
-          ? (bCount / b.targetValue).clamp(0.0, 1.0)
-          : 0.0;
-
-      return aProgress.compareTo(bProgress);
-    });
-
-    double dailyProgress = 0.0;
-    int completedHabits = 0;
-
-    if (sortedHabits.isNotEmpty) {
-      double sumProgress = 0.0;
-
-      for (final habit in sortedHabits) {
-        double p = 0.0;
-        if (habit.type == HabitType.boolean) {
-          final done = service.isHabitDone(habit.id, today);
-          p = done ? 1.0 : 0.0;
-        } else {
-          final count = service.countForHabit(habit.id, today);
-          if (habit.targetValue > 0) {
-            p = (count / habit.targetValue).clamp(0.0, 1.0);
-          }
-        }
-
-        sumProgress += p;
-        if (p >= 1.0) {
-          completedHabits++;
-        }
-      }
-
-      dailyProgress = (sumProgress / sortedHabits.length).clamp(0.0, 1.0);
+    if (!service.isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
+
+    final habits = service.habitsForDate(_selectedDate);
 
     return SafeArea(
       child: Scaffold(
@@ -80,162 +74,120 @@ class TodayPage extends StatelessWidget {
         ),
         body: Column(
           children: [
-            _buildDailySummaryCard(
-              context: context,
-              progress: dailyProgress,
-              completed: completedHabits,
-              total: sortedHabits.length,
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: sortedHabits.length,
-                itemBuilder: (context, index) {
-                  final habit = sortedHabits[index];
-                  final isDone = service.isHabitDone(habit.id, today);
-                  final count = service.countForHabit(habit.id, today);
-                  final streak = service.streakForHabit(habit.id, today);
-
-                  double progress = 0.0;
-
-                  if (habit.type == HabitType.boolean) {
-                    progress = isDone ? 1.0 : 0.0;
-                  } else {
-                    if (habit.targetValue > 0) {
-                      progress = (count / habit.targetValue).clamp(0.0, 1.0);
-                    }
-                  }
-
-                  Color streakColor;
-                  if (streak <= 0) {
-                    streakColor = Colors.grey;
-                  } else if (streak <= 2) {
-                    streakColor = Colors.tealAccent;
-                  } else if (streak <= 6) {
-                    streakColor = Colors.greenAccent;
-                  } else {
-                    streakColor = Colors.amberAccent;
-                  }
-
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    child: InkWell(
-                      onTap: () {
-                        if (habit.type == HabitType.boolean) {
-                          service.toggleHabit(habit.id, today);
-                        } else {
-                          service.incrementCount(habit.id, today);
-                        }
-                      },
-                      onLongPress: () {
-                        service.resetForDate(habit.id, today);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () => _changeDay(-1),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _dateLabel(_selectedDate),
+                          style: Theme.of(context).textTheme.titleMedium,
+                          textAlign: TextAlign.center,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    habit.name,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isDone
-                                          ? Colors.greenAccent
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.whatshot,
-                                      size: 16,
-                                      color: streakColor,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Streak: $streak',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: streakColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 7,
-                              backgroundColor: Colors.grey.shade800,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                progress >= 1.0
-                                    ? Colors.greenAccent
-                                    : Colors.tealAccent,
+                        if (_isToday)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Dagens vaner',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                if (habit.type == HabitType.boolean)
-                                  Text(
-                                    isDone ? 'Fullført' : 'Ikke fullført',
-                                    style: const TextStyle(fontSize: 13),
-                                  )
-                                else
-                                  Text(
-                                    '$count / ${habit.targetValue}',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                              ],
-                            ),
-                          ],
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => _changeDay(1),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: habits.isEmpty
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text(
+                          'Ingen vaner denne dagen.',
+                          textAlign: TextAlign.center,
                         ),
                       ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      itemCount: habits.length,
+                      itemBuilder: (context, index) {
+                        final habit = habits[index];
+                        if (habit.type == HabitType.boolean) {
+                          return _buildBooleanHabitCard(context, habit);
+                        } else {
+                          return _buildCountHabitCard(context, habit);
+                        }
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-Widget _buildDailySummaryCard({
-  required BuildContext context,
-  required double progress,
-  required int completed,
-  required int total,
-}) {
-  if (total == 0) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Card(
+  Widget _buildBooleanHabitCard(BuildContext context, Habit habit) {
+    final service = context.watch<HabitService>();
+    final done = service.isHabitDone(habit.id, _selectedDate);
+
+    final Color bgColor = done ? Colors.greenAccent : Colors.grey.shade900;
+    final Color borderColor =
+        done ? Colors.green.shade700 : Colors.grey.shade800;
+    final Color textColor = done ? Colors.black : Colors.white;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      color: bgColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          context.read<HabitService>().toggleHabit(habit.id, _selectedDate);
+        },
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
-            children: const [
-              Icon(Icons.info_outline),
-              SizedBox(width: 12),
+            children: [
+              Icon(
+                done
+                    ? Icons.check_circle
+                    : Icons.radio_button_unchecked,
+                color: done ? Colors.green.shade900 : Colors.white70,
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Ingen vaner for i dag. Legg til vaner under "Vaner".',
+                  habit.name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
+              _buildStreakChip(context, habit),
             ],
           ),
         ),
@@ -243,38 +195,137 @@ Widget _buildDailySummaryCard({
     );
   }
 
-  final int percent = (progress * 100).round();
+  Widget _buildCountHabitCard(BuildContext context, Habit habit) {
+    final service = context.watch<HabitService>();
+    final current = service.countForHabit(habit.id, _selectedDate);
+    final target = habit.targetValue;
 
-  return Padding(
-    padding: const EdgeInsets.all(16),
-    child: Card(
+    double ratio = 0.0;
+    if (target > 0) {
+      ratio = (current / target).clamp(0.0, 1.0);
+    }
+
+    Color bgColor;
+    Color textColor = Colors.white;
+    Color borderColor = Colors.grey.shade800;
+
+    if (ratio >= 1.0 && target > 0) {
+      bgColor = Colors.greenAccent;
+      textColor = Colors.black;
+      borderColor = Colors.green.shade700;
+    } else if (ratio > 0.0) {
+      bgColor = Colors.amberAccent.withOpacity(0.25);
+      borderColor = Colors.amber.shade700;
+    } else {
+      bgColor = Colors.grey.shade900;
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      color: bgColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
           children: [
-            Text(
-              'Dagens progresjon',
-              style: Theme.of(context).textTheme.titleMedium,
+            Icon(
+              Icons.countertops_outlined,
+              color: textColor,
             ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 10,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    habit.name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: textColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        target > 0 ? '$current / $target' : '$current',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textColor.withOpacity(0.9),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (target > 0)
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: ratio,
+                              minHeight: 6,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '$percent % fullført',
-              style: const TextStyle(fontSize: 13),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
+              tooltip: 'Nullstill for i dag',
+              onPressed: () {
+                context
+                    .read<HabitService>()
+                    .resetForDate(habit.id, _selectedDate);
+              },
             ),
-            const SizedBox(height: 4),
-            Text(
-              '$completed av $total vaner fullført',
-              style: const TextStyle(fontSize: 13),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Ok ett steg',
+              onPressed: () {
+                context
+                    .read<HabitService>()
+                    .incrementCount(habit.id, _selectedDate);
+              },
             ),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _buildStreakChip(BuildContext context, Habit habit) {
+    final service = context.watch<HabitService>();
+    final streak = service.streakForHabit(habit.id, _selectedDate);
+    if (streak <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.local_fire_department_outlined,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${streak}d',
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
 }
