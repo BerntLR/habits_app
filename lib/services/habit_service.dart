@@ -170,6 +170,16 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateHabit(Habit updated) {
+    final index = _habits.indexWhere((h) => h.id == updated.id);
+    if (index == -1) {
+      return;
+    }
+    _habits[index] = updated;
+    _saveToStorage();
+    notifyListeners();
+  }
+
   void removeHabit(String habitId) {
     _habits.removeWhere((h) => h.id == habitId);
     _entriesByHabit.remove(habitId);
