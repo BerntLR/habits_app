@@ -107,8 +107,6 @@ class HabitService extends ChangeNotifier {
         );
       }
     } else {
-      // For count-vaner bruker vi incrementCount i stedet for toggleHabit
-      // Denne grenen skal normalt ikke brukes lenger, men vi lar den være defensiv.
       final current = existing?.value ?? 0;
       final newValue = current == 0 ? habit.targetValue : 0;
       mapForHabit[d] = HabitEntry(
@@ -134,8 +132,15 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetForDate(String habitId, DateTime date) {
+    setCount(habitId, date, 0);
+  }
+
   void incrementCount(String habitId, DateTime date) {
-    final habit = _habits.firstWhere((h) => h.id == habitId, orElse: () => throw Exception('Habit not found'));
+    final habit = _habits.firstWhere(
+      (h) => h.id == habitId,
+      orElse: () => throw Exception('Habit not found'),
+    );
     if (habit.type != HabitType.count) {
       return;
     }

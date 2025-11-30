@@ -128,6 +128,9 @@ class TodayPage extends StatelessWidget {
                           service.incrementCount(habit.id, today);
                         }
                       },
+                      onLongPress: () {
+                        service.resetForDate(habit.id, today);
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 12,
