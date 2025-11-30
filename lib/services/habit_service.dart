@@ -90,7 +90,6 @@ class HabitService extends ChangeNotifier {
     final d = normalizeDate(date);
     final habit = _habits.firstWhere((h) => h.id == habitId);
     final mapForHabit = _entriesByHabit.putIfAbsent(habitId, () => {});
-
     final existing = mapForHabit[d];
 
     if (habit.type == HabitType.boolean) {
@@ -108,19 +107,15 @@ class HabitService extends ChangeNotifier {
         );
       }
     } else {
-      if (existing == null || existing.value == 0) {
-        mapForHabit[d] = HabitEntry(
-          habitId: habitId,
-          date: d,
-          value: habit.targetValue,
-        );
-      } else {
-        mapForHabit[d] = HabitEntry(
-          habitId: habitId,
-          date: d,
-          value: 0,
-        );
-      }
+      // For count-vaner bruker vi incrementCount i stedet for toggleHabit
+      // Denne grenen skal normalt ikke brukes lenger, men vi lar den være defensiv.
+      final current = existing?.value ?? 0;
+      final newValue = current == 0 ? habit.targetValue : 0;
+      mapForHabit[d] = HabitEntry(
+        habitId: habitId,
+        date: d,
+        value: newValue,
+      );
     }
 
     _saveToStorage();
@@ -135,6 +130,31 @@ class HabitService extends ChangeNotifier {
       date: d,
       value: value,
     );
+    _saveToStorage();
+    notifyListeners();
+  }
+
+  void incrementCount(String habitId, DateTime date) {
+    final habit = _habits.firstWhere((h) => h.id == habitId, orElse: () => throw Exception('Habit not found'));
+    if (habit.type != HabitType.count) {
+      return;
+    }
+
+    final d = normalizeDate(date);
+    final mapForHabit = _entriesByHabit.putIfAbsent(habitId, () => {});
+    final existing = mapForHabit[d];
+    int newValue = (existing?.value ?? 0) + 1;
+
+    if (habit.targetValue > 0 && newValue > habit.targetValue) {
+      newValue = habit.targetValue;
+    }
+
+    mapForHabit[d] = HabitEntry(
+      habitId: habitId,
+      date: d,
+      value: newValue,
+    );
+
     _saveToStorage();
     notifyListeners();
   }
