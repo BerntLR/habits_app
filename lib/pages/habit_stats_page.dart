@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 
-class HabitStatsPage extends StatelessWidget {
+class HabitStatsPage extends StatefulWidget {
   final Habit habit;
 
   const HabitStatsPage({
@@ -12,31 +12,73 @@ class HabitStatsPage extends StatelessWidget {
     required this.habit,
   });
 
+  @override
+  State<HabitStatsPage> createState() => _HabitStatsPageState();
+}
+
+class _HabitStatsPageState extends State<HabitStatsPage> {
+  late int _year;
+  late int _month;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _year = now.year;
+    _month = now.month;
+  }
+
   bool _isActiveOnDate(Habit habit, DateTime date) {
     if (habit.activeWeekdays.isEmpty) return true;
     return habit.activeWeekdays.contains(date.weekday);
   }
 
+  void _changeMonth(int delta) {
+    setState(() {
+      int newMonth = _month + delta;
+      int newYear = _year;
+
+      if (newMonth <= 0) {
+        newMonth = 12;
+        newYear = _year - 1;
+      } else if (newMonth > 12) {
+        newMonth = 1;
+        newYear = _year + 1;
+      }
+
+      _month = newMonth;
+      _year = newYear;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final service = context.watch<HabitService>();
-    final now = DateTime.now();
-    final currentYear = now.year;
-    final currentMonth = now.month;
 
-    final monthStats = _computeMonthStats(service, habit, currentYear, currentMonth);
-    final yearStats = _computeYearStats(service, habit, currentYear);
+    final monthStats =
+        _computeMonthStats(service, widget.habit, _year, _month);
+    final yearStats = _computeYearStats(service, widget.habit, _year);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Historikk: ${habit.name}'),
+        title: Text('Historikk: ${widget.habit.name}'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMonthSection(context, monthStats),
+            GestureDetector(
+              onHorizontalDragEnd: (details) {
+                final v = details.primaryVelocity ?? 0;
+                if (v < 0) {
+                  _changeMonth(1);
+                } else if (v > 0) {
+                  _changeMonth(-1);
+                }
+              },
+              child: _buildMonthSection(context, monthStats),
+            ),
             const SizedBox(height: 24),
             _buildYearSection(context, yearStats),
           ],
@@ -158,7 +200,7 @@ class HabitStatsPage extends StatelessWidget {
 
     final DateTime anyDate = monthStats.first.date;
     final String title =
-        'Denne måneden (${anyDate.month.toString().padLeft(2, '0')}.${anyDate.year})';
+        'Maned: ${anyDate.month.toString().padLeft(2, '0')}.${anyDate.year}';
 
     return Card(
       child: Padding(
@@ -166,9 +208,22 @@ class HabitStatsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () => _changeMonth(-1),
+                ),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () => _changeMonth(1),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -182,11 +237,11 @@ class HabitStatsPage extends StatelessWidget {
                   bg = Colors.grey.shade900;
                   border = Colors.grey.shade800;
                 } else if (d.progress >= 1.0) {
-                  bg = Colors.greenAccent;       // FULLFØRT
+                  bg = Colors.greenAccent;
                 } else if (d.progress > 0.0) {
-                  bg = Colors.amberAccent;       // DELVIS
+                  bg = Colors.amberAccent;
                 } else {
-                  bg = Colors.grey.shade700;     // INGEN REGISTRERING
+                  bg = Colors.grey.shade700;
                 }
 
                 return Container(
@@ -238,11 +293,11 @@ class HabitStatsPage extends StatelessWidget {
       children: [
         box(Colors.greenAccent),
         const SizedBox(width: 4),
-        const Text('Fullført'),
+        const Text('Fullfort'),
         const SizedBox(width: 12),
         box(Colors.amberAccent),
         const SizedBox(width: 4),
-        const Text('Delvis fullført'),
+        const Text('Delvis fullfort'),
         const SizedBox(width: 12),
         box(Colors.grey),
         const SizedBox(width: 4),
@@ -254,7 +309,7 @@ class HabitStatsPage extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.grey,
             borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: Colors.grey.shade800),
+            border: Border.all(color: Colors.grey),
           ),
         ),
         const SizedBox(width: 4),
@@ -273,8 +328,18 @@ class HabitStatsPage extends StatelessWidget {
 
     final int year = yearStats.first.year;
     const monthNames = <String>[
-      'Jan','Feb','Mar','Apr','Mai','Jun',
-      'Jul','Aug','Sep','Okt','Nov','Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
 
     return Card(
@@ -284,7 +349,7 @@ class HabitStatsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dette året ($year)',
+              'Dette aret ($year)',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
@@ -298,10 +363,16 @@ class HabitStatsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
-                        SizedBox(width: 40, child: Text(label)),
+                        SizedBox(
+                          width: 40,
+                          child: Text(label),
+                        ),
                         const SizedBox(width: 8),
                         const Expanded(
-                          child: Text('Ingen aktive dager'),
+                          child: Text(
+                            'Ingen aktive dager',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                       ],
                     ),
@@ -312,7 +383,10 @@ class HabitStatsPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      SizedBox(width: 40, child: Text(label)),
+                      SizedBox(
+                        width: 40,
+                        child: Text(label),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: LinearProgressIndicator(
@@ -321,7 +395,10 @@ class HabitStatsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('$percent%', style: const TextStyle(fontSize: 12)),
+                      Text(
+                        '$percent%',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         '${m.completedDays}/${m.activeDays}',
