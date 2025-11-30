@@ -14,6 +14,37 @@ class TodayPage extends StatelessWidget {
 
     final todaysHabits = service.habitsForDate(today);
 
+    final List<Habit> sortedHabits = List<Habit>.from(todaysHabits);
+
+    sortedHabits.sort((a, b) {
+      if (a.type == HabitType.boolean && b.type != HabitType.boolean) {
+        return -1;
+      }
+      if (a.type != HabitType.boolean && b.type == HabitType.boolean) {
+        return 1;
+      }
+
+      if (a.type == HabitType.boolean && b.type == HabitType.boolean) {
+        final aDone = service.isHabitDone(a.id, today);
+        final bDone = service.isHabitDone(b.id, today);
+
+        if (aDone == bDone) return 0;
+        return aDone ? 1 : -1;
+      }
+
+      final aCount = service.countForHabit(a.id, today);
+      final bCount = service.countForHabit(b.id, today);
+
+      final double aProgress = a.targetValue > 0
+          ? (aCount / a.targetValue).clamp(0.0, 1.0)
+          : 0.0;
+      final double bProgress = b.targetValue > 0
+          ? (bCount / b.targetValue).clamp(0.0, 1.0)
+          : 0.0;
+
+      return aProgress.compareTo(bProgress);
+    });
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -22,9 +53,9 @@ class TodayPage extends StatelessWidget {
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(12),
-          itemCount: todaysHabits.length,
+          itemCount: sortedHabits.length,
           itemBuilder: (context, index) {
-            final habit = todaysHabits[index];
+            final habit = sortedHabits[index];
             final isDone = service.isHabitDone(habit.id, today);
             final count = service.countForHabit(habit.id, today);
             final streak = service.streakForHabit(habit.id, today);
