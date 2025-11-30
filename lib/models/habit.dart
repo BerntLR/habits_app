@@ -11,6 +11,7 @@ class Habit {
   final Set<int> activeWeekdays;
   final bool isArchived;
   final DateTime createdAt;
+  final int sortOrder;
 
   Habit({
     required this.id,
@@ -20,6 +21,7 @@ class Habit {
     required this.activeWeekdays,
     this.isArchived = false,
     DateTime? createdAt,
+    this.sortOrder = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Habit copyWith({
@@ -30,6 +32,7 @@ class Habit {
     Set<int>? activeWeekdays,
     bool? isArchived,
     DateTime? createdAt,
+    int? sortOrder,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -39,6 +42,7 @@ class Habit {
       activeWeekdays: activeWeekdays ?? this.activeWeekdays,
       isArchived: isArchived ?? this.isArchived,
       createdAt: createdAt ?? this.createdAt,
+      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 
@@ -46,11 +50,12 @@ class Habit {
     return {
       'id': id,
       'name': name,
-      'type': type.name,
+      'type': type == HabitType.count ? 'count' : 'boolean',
       'targetValue': targetValue,
       'activeWeekdays': activeWeekdays.toList(),
       'isArchived': isArchived,
       'createdAt': createdAt.toIso8601String(),
+      'sortOrder': sortOrder,
     };
   }
 
@@ -67,6 +72,7 @@ class Habit {
           .toSet(),
       isArchived: (map['isArchived'] as bool?) ?? false,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      sortOrder: (map['sortOrder'] as int?) ?? 0,
     );
   }
 }
@@ -74,7 +80,7 @@ class Habit {
 class HabitEntry {
   final String habitId;
   final DateTime date;
-  int value;
+  final int value;
 
   HabitEntry({
     required this.habitId,

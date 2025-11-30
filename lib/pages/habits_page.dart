@@ -20,41 +20,58 @@ class HabitsPage extends StatelessWidget {
           title: const Text('Vaner'),
           centerTitle: true,
         ),
-        body: ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: habits.length,
-          itemBuilder: (context, index) {
-            final habit = habits[index];
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              child: ListTile(
-                title: Text(habit.name),
-                subtitle: Text(
-                  habit.type == HabitType.boolean
-                      ? 'Ja/Nei vane'
-                      : 'Tellende (${habit.targetValue})',
+        body: habits.isEmpty
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Ingen vaner enda. Legg til en vane med knappen nederst.',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => HabitStatsPage(habit: habit),
+              )
+            : ReorderableListView.builder(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 80),
+                itemCount: habits.length,
+                onReorder: (oldIndex, newIndex) {
+                  context
+                      .read<HabitService>()
+                      .reorderHabits(oldIndex, newIndex);
+                },
+                itemBuilder: (context, index) {
+                  final habit = habits[index];
+                  return Card(
+                    key: ValueKey(habit.id),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: ListTile(
+                      title: Text(habit.name),
+                      subtitle: Text(
+                        habit.type == HabitType.boolean
+                            ? 'Ja/Nei vane'
+                            : 'Tellende (${habit.targetValue})',
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => HabitStatsPage(habit: habit),
+                          ),
+                        );
+                      },
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  HabitEditPage(existing: habit),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => HabitEditPage(existing: habit),
-                      ),
-                    );
-                  },
-                ),
               ),
-            );
-          },
-        ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             Navigator.of(context).push(

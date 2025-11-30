@@ -15,7 +15,18 @@ class HabitService extends ChangeNotifier {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
-  List<Habit> get habits => List.unmodifiable(_habits);
+  List<Habit> get habits {
+    final list = List<Habit>.from(_habits);
+    list.sort((a, b) {
+      if (a.sortOrder != b.sortOrder) {
+        return a.sortOrder.compareTo(b.sortOrder);
+      }
+      final createdCmp = a.createdAt.compareTo(b.createdAt);
+      if (createdCmp != 0) return createdCmp;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    return List.unmodifiable(list);
+  }
 
   Future<void> init() async {
     if (_isInitialized) return;
@@ -25,10 +36,36 @@ class HabitService extends ChangeNotifier {
     if (_habits.isEmpty) {
       _seedInitialData();
       await _saveToStorage();
+    } else {
+      _normalizeSortOrder();
     }
 
     _isInitialized = true;
     notifyListeners();
+  }
+
+  void _normalizeSortOrder() {
+    final sorted = List<Habit>.from(_habits);
+    sorted.sort((a, b) {
+      if (a.sortOrder != b.sortOrder) {
+        return a.sortOrder.compareTo(b.sortOrder);
+      }
+      final createdCmp = a.createdAt.compareTo(b.createdAt);
+      if (createdCmp != 0) return createdCmp;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+
+    _habits
+      ..clear()
+      ..addAll(
+        sorted.asMap().entries.map(
+          (entry) {
+            final index = entry.key;
+            final h = entry.value;
+            return h.copyWith(sortOrder: index);
+          },
+        ),
+      );
   }
 
   void _seedInitialData() {
@@ -42,6 +79,7 @@ class HabitService extends ChangeNotifier {
         type: HabitType.boolean,
         targetValue: 1,
         activeWeekdays: {1, 2, 3, 4, 5, 6, 7},
+        sortOrder: 0,
       ),
       Habit(
         id: 'water',
@@ -49,6 +87,7 @@ class HabitService extends ChangeNotifier {
         type: HabitType.count,
         targetValue: 5,
         activeWeekdays: {1, 2, 3, 4, 5, 6, 7},
+        sortOrder: 1,
       ),
     ]);
   }
@@ -190,7 +229,17 @@ class HabitService extends ChangeNotifier {
   }
 
   void addHabit(Habit habit) {
-    _habits.add(habit);
+    final int nextSortOrder;
+    if (_habits.isEmpty) {
+      nextSortOrder = 0;
+    } else {
+      final maxCurrent =
+          _habits.map((h) => h.sortOrder).reduce((a, b) => a > b ? a : b);
+      nextSortOrder = maxCurrent + 1;
+    }
+
+    final toAdd = habit.copyWith(sortOrder: nextSortOrder);
+    _habits.add(toAdd);
     _saveToStorage();
     notifyListeners();
   }
@@ -200,7 +249,9 @@ class HabitService extends ChangeNotifier {
     if (index == -1) {
       return;
     }
-    _habits[index] = updated;
+    final old = _habits[index];
+    final newHabit = updated.copyWith(sortOrder: old.sortOrder);
+    _habits[index] = newHabit;
     _saveToStorage();
     notifyListeners();
   }
@@ -208,6 +259,33 @@ class HabitService extends ChangeNotifier {
   void removeHabit(String habitId) {
     _habits.removeWhere((h) => h.id == habitId);
     _entriesByHabit.remove(habitId);
+    _saveToStorage();
+    notifyListeners();
+  }
+
+  void reorderHabits(int oldIndex, int newIndex) {
+    final current = habits;
+    final List<Habit> reordered = List<Habit>.from(current);
+
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final moved = reordered.removeAt(oldIndex);
+    reordered.insert(newIndex, moved);
+
+    _habits
+      ..clear()
+      ..addAll(
+        reordered.asMap().entries.map(
+          (entry) {
+            final index = entry.key;
+            final h = entry.value;
+            return h.copyWith(sortOrder: index);
+          },
+        ),
+      );
+
     _saveToStorage();
     notifyListeners();
   }
