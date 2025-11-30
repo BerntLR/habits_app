@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
+import 'habit_edit_page.dart';
 
 class HabitsPage extends StatelessWidget {
   const HabitsPage({super.key});
@@ -32,38 +33,20 @@ class HabitsPage extends StatelessWidget {
                       ? 'Ja/Nei vane'
                       : 'Tellende (${habit.targetValue})',
                 ),
-                onTap: () async {
-                  await _showHabitDialog(
-                    context,
-                    existing: habit,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => HabitEditPage(existing: habit),
+                    ),
                   );
                 },
                 trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
+                  icon: const Icon(Icons.edit_outlined),
                   onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Slett vane?'),
-                          content: Text(
-                            'Er du sikker på at du vil slette "${habit.name}"?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Avbryt'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                service.removeHabit(habit.id);
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Slett'),
-                            ),
-                          ],
-                        );
-                      },
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => HabitEditPage(existing: habit),
+                      ),
                     );
                   },
                 ),
@@ -72,8 +55,12 @@ class HabitsPage extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            await _showHabitDialog(context);
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const HabitEditPage(),
+              ),
+            );
           },
           icon: const Icon(Icons.add),
           label: const Text('Ny vane'),
@@ -81,157 +68,4 @@ class HabitsPage extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
-  final service = context.read<HabitService>();
-
-  final nameController = TextEditingController(text: existing?.name ?? '');
-  HabitType selectedType = existing?.type ?? HabitType.boolean;
-  final targetController = TextEditingController(
-    text: existing != null ? existing.targetValue.toString() : '1',
-  );
-
-  Set<int> weekdays =
-      existing?.activeWeekdays.toSet() ?? {1, 2, 3, 4, 5, 6, 7};
-
-  final bool isEditing = existing != null;
-
-  const weekdayLabels = {
-    1: 'Man',
-    2: 'Tir',
-    3: 'Ons',
-    4: 'Tor',
-    5: 'Fre',
-    6: 'Lør',
-    7: 'Søn',
-  };
-
-  await showDialog<void>(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Text(isEditing ? 'Rediger vane' : 'Ny vane'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Navn på vane',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<HabitType>(
-                    value: selectedType,
-                    items: const [
-                      DropdownMenuItem(
-                        value: HabitType.boolean,
-                        child: Text('Ja/Nei'),
-                      ),
-                      DropdownMenuItem(
-                        value: HabitType.count,
-                        child: Text('Antall'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        selectedType = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (selectedType == HabitType.count)
-                    TextField(
-                      controller: targetController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Mal (for eksempel 10 minutter eller 5 glass)',
-                      ),
-                    ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Ukedager',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    children: weekdayLabels.entries.map((entry) {
-                      final day = entry.key;
-                      final label = entry.value;
-
-                      final selected = weekdays.contains(day);
-
-                      return ChoiceChip(
-                        label: Text(label),
-                        selected: selected,
-                        onSelected: (_) {
-                          setState(() {
-                            if (selected) {
-                              weekdays.remove(day);
-                            } else {
-                              weekdays.add(day);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Avbryt'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final name = nameController.text.trim();
-                  if (name.isEmpty) return;
-
-                  final target = selectedType == HabitType.count
-                      ? (int.tryParse(targetController.text) ?? 1)
-                      : 1;
-
-                  if (isEditing && existing != null) {
-                    final updated = existing.copyWith(
-                      name: name,
-                      type: selectedType,
-                      targetValue: target,
-                      activeWeekdays: weekdays,
-                    );
-                    service.updateHabit(updated);
-                  } else {
-                    final newHabit = Habit(
-                      id: '${DateTime.now().millisecondsSinceEpoch}',
-                      name: name,
-                      type: selectedType,
-                      targetValue: target,
-                      activeWeekdays: weekdays,
-                    );
-                    service.addHabit(newHabit);
-                  }
-
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Lagre'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
 }
