@@ -57,16 +57,59 @@ class HabitsPage extends StatelessWidget {
                           ),
                         );
                       },
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  HabitEditPage(existing: habit),
-                            ),
-                          );
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.archive_outlined),
+                            tooltip: 'Arkiver vane',
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) {
+                                  return AlertDialog(
+                                    title: const Text('Arkiver vane'),
+                                    content: Text(
+                                      'Vil du arkivere vanen "${habit.name}"?\n\n'
+                                      'Den forsvinner fra listen, men historikk beholdes.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(ctx).pop(false);
+                                        },
+                                        child: const Text('Avbryt'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(ctx).pop(true);
+                                        },
+                                        child: const Text('Arkiver'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirm == true) {
+                                context
+                                    .read<HabitService>()
+                                    .archiveHabit(habit.id);
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      HabitEditPage(existing: habit),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );

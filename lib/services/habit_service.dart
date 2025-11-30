@@ -16,7 +16,7 @@ class HabitService extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
 
   List<Habit> get habits {
-    final list = List<Habit>.from(_habits);
+    final list = _habits.where((h) => !h.isArchived).toList();
     list.sort((a, b) {
       if (a.sortOrder != b.sortOrder) {
         return a.sortOrder.compareTo(b.sortOrder);
@@ -259,6 +259,20 @@ class HabitService extends ChangeNotifier {
   void removeHabit(String habitId) {
     _habits.removeWhere((h) => h.id == habitId);
     _entriesByHabit.remove(habitId);
+    _saveToStorage();
+    notifyListeners();
+  }
+
+  void archiveHabit(String habitId) {
+    final index = _habits.indexWhere((h) => h.id == habitId);
+    if (index == -1) {
+      return;
+    }
+    final h = _habits[index];
+    if (h.isArchived) {
+      return;
+    }
+    _habits[index] = h.copyWith(isArchived: true);
     _saveToStorage();
     notifyListeners();
   }
