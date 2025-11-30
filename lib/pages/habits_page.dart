@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 import 'habit_edit_page.dart';
+import 'habit_stats_page.dart';
 
 class HabitsPage extends StatelessWidget {
   const HabitsPage({super.key});
@@ -36,7 +37,7 @@ class HabitsPage extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => HabitEditPage(existing: habit),
+                      builder: (_) => HabitStatsPage(habit: habit),
                     ),
                   );
                 },
