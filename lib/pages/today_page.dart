@@ -5,7 +5,9 @@ import '../models/habit.dart';
 import '../services/habit_service.dart';
 
 class TodayPage extends StatefulWidget {
-  const TodayPage({super.key});
+  final DateTime? initialDate;
+
+  const TodayPage({super.key, this.initialDate});
 
   @override
   State<TodayPage> createState() => _TodayPageState();
@@ -21,7 +23,7 @@ class _TodayPageState extends State<TodayPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = _normalize(DateTime.now());
+    _selectedDate = _normalize(widget.initialDate ?? DateTime.now());
   }
 
   DateTime _normalize(DateTime d) => DateTime(d.year, d.month, d.day);
@@ -82,6 +84,13 @@ class _TodayPageState extends State<TodayPage> {
       setState(() {
         _glowMap[key] = false;
       });
+    });
+  }
+
+  // Kan brukes senere hvis vi vil hoppe til dato uten ny side
+  void jumpToDate(DateTime date) {
+    setState(() {
+      _selectedDate = _normalize(date);
     });
   }
 

@@ -3,347 +3,49 @@ import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
+import 'today_page.dart';
 
 class HabitStatsPage extends StatefulWidget {
   final Habit habit;
 
-  const HabitStatsPage({
-    super.key,
-    required this.habit,
-  });
+  const HabitStatsPage({super.key, required this.habit});
 
   @override
   State<HabitStatsPage> createState() => _HabitStatsPageState();
 }
 
 class _HabitStatsPageState extends State<HabitStatsPage> {
-  late int _year;
-  late int _month;
+  late DateTime _currentMonth;
+  late int _currentYear;
+  bool _showYearView = false;
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _year = now.year;
-    _month = now.month;
-  }
-
-  bool _isActiveOnDate(Habit habit, DateTime date) {
-    if (habit.activeWeekdays.isEmpty) return true;
-    return habit.activeWeekdays.contains(date.weekday);
+    _currentMonth = DateTime(now.year, now.month, 1);
+    _currentYear = now.year;
   }
 
   void _changeMonth(int delta) {
     setState(() {
-      int newMonth = _month + delta;
-      int newYear = _year;
-
-      if (newMonth <= 0) {
-        newMonth = 12;
-        newYear = _year - 1;
-      } else if (newMonth > 12) {
-        newMonth = 1;
-        newYear = _year + 1;
-      }
-
-      _month = newMonth;
-      _year = newYear;
+      _currentMonth = DateTime(
+        _currentMonth.year,
+        _currentMonth.month + delta,
+        1,
+      );
+      _currentYear = _currentMonth.year;
     });
   }
 
   void _changeYear(int delta) {
     setState(() {
-      _year += delta;
+      _currentYear += delta;
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final service = context.watch<HabitService>();
-
-    final monthStats =
-        _computeMonthStats(service, widget.habit, _year, _month);
-    final yearStats = _computeYearStats(service, widget.habit, _year);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Historikk: ${widget.habit.name}'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onHorizontalDragEnd: (details) {
-                final v = details.primaryVelocity ?? 0;
-                if (v < 0) {
-                  _changeMonth(1);
-                } else if (v > 0) {
-                  _changeMonth(-1);
-                }
-              },
-              child: _buildMonthSection(context, monthStats),
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onHorizontalDragEnd: (details) {
-                final v = details.primaryVelocity ?? 0;
-                if (v < 0) {
-                  _changeYear(1);
-                } else if (v > 0) {
-                  _changeYear(-1);
-                }
-              },
-              child: _buildYearSection(context, yearStats),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<_DayHabitStat> _computeMonthStats(
-    HabitService service,
-    Habit habit,
-    int year,
-    int month,
-  ) {
-    final int daysInMonth = DateUtils.getDaysInMonth(year, month);
-    final List<_DayHabitStat> stats = [];
-
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(year, month, day);
-      final bool isActive = _isActiveOnDate(habit, date);
-
-      double progress = 0.0;
-      bool done = false;
-
-      if (isActive) {
-        if (habit.type == HabitType.boolean) {
-          done = service.isHabitDone(habit.id, date);
-          progress = done ? 1.0 : 0.0;
-        } else {
-          final count = service.countForHabit(habit.id, date);
-          if (habit.targetValue > 0) {
-            progress = (count / habit.targetValue).clamp(0.0, 1.0);
-          }
-          done = progress >= 1.0;
-        }
-      }
-
-      stats.add(
-        _DayHabitStat(
-          date: date,
-          isActive: isActive,
-          progress: progress,
-          done: done,
-        ),
-      );
-    }
-
-    return stats;
-  }
-
-  List<_MonthHabitStat> _computeYearStats(
-    HabitService service,
-    Habit habit,
-    int year,
-  ) {
-    final List<_MonthHabitStat> result = [];
-
-    for (int month = 1; month <= 12; month++) {
-      final int daysInMonth = DateUtils.getDaysInMonth(year, month);
-
-      int activeDays = 0;
-      int completedDays = 0;
-      double sumProgress = 0.0;
-
-      for (int day = 1; day <= daysInMonth; day++) {
-        final date = DateTime(year, month, day);
-        if (!_isActiveOnDate(habit, date)) {
-          continue;
-        }
-
-        activeDays++;
-
-        double progress = 0.0;
-        bool done = false;
-
-        if (habit.type == HabitType.boolean) {
-          done = service.isHabitDone(habit.id, date);
-          progress = done ? 1.0 : 0.0;
-        } else {
-          final count = service.countForHabit(habit.id, date);
-          if (habit.targetValue > 0) {
-            progress = (count / habit.targetValue).clamp(0.0, 1.0);
-          }
-          done = progress >= 1.0;
-        }
-
-        if (done) {
-          completedDays++;
-        }
-        sumProgress += progress;
-      }
-
-      double ratio = 0.0;
-      if (activeDays > 0) {
-        ratio = (sumProgress / activeDays).clamp(0.0, 1.0);
-      }
-
-      result.add(
-        _MonthHabitStat(
-          year: year,
-          month: month,
-          activeDays: activeDays,
-          completedDays: completedDays,
-          ratio: ratio,
-        ),
-      );
-    }
-
-    return result;
-  }
-
-  Widget _buildMonthSection(
-    BuildContext context,
-    List<_DayHabitStat> monthStats,
-  ) {
-    if (monthStats.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final DateTime anyDate = monthStats.first.date;
-    final String title =
-        'Maned: ${anyDate.month.toString().padLeft(2, '0')}.${anyDate.year}';
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () => _changeMonth(-1),
-                ),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: () => _changeMonth(1),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: monthStats.map((d) {
-                Color bg;
-                Color border = Colors.transparent;
-
-                if (!d.isActive) {
-                  bg = Colors.grey.shade900;
-                  border = Colors.grey.shade800;
-                } else if (d.progress >= 1.0) {
-                  bg = Colors.greenAccent;
-                } else if (d.progress > 0.0) {
-                  bg = Colors.amberAccent;
-                } else {
-                  bg = Colors.grey.shade700;
-                }
-
-                return Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: bg,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: border,
-                      width: border == Colors.transparent ? 0.0 : 1.0,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      d.date.day.toString(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: d.progress >= 1.0
-                            ? Colors.black
-                            : Colors.white,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 12),
-            _buildMonthLegend(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMonthLegend() {
-    Widget box(Color color) {
-      return Container(
-        width: 14,
-        height: 14,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(3),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        box(Colors.greenAccent),
-        const SizedBox(width: 4),
-        const Text('Fullfort'),
-        const SizedBox(width: 12),
-        box(Colors.amberAccent),
-        const SizedBox(width: 4),
-        const Text('Delvis fullfort'),
-        const SizedBox(width: 12),
-        box(Colors.grey),
-        const SizedBox(width: 4),
-        const Text('Ingen registrering'),
-        const SizedBox(width: 12),
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: Colors.grey,
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: Colors.grey),
-          ),
-        ),
-        const SizedBox(width: 4),
-        const Text('Ikke aktiv dag'),
-      ],
-    );
-  }
-
-  Widget _buildYearSection(
-    BuildContext context,
-    List<_MonthHabitStat> yearStats,
-  ) {
-    if (yearStats.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final int year = yearStats.first.year;
-    const monthNames = <String>[
+  String _monthName(int month) {
+    const names = <String>[
       'Jan',
       'Feb',
       'Mar',
@@ -357,120 +59,379 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       'Nov',
       'Des',
     ];
+    return names[month - 1];
+  }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () => _changeYear(-1),
-                ),
-                Text(
-                  'Dette aret ($year)',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: () => _changeYear(1),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Column(
-              children: yearStats.map((m) {
-                final label = monthNames[m.month - 1];
-                final percent = (m.ratio * 100).round();
+  Color _colorForDay({
+    required Habit habit,
+    required HabitService service,
+    required DateTime date,
+  }) {
+    if (date.month != _currentMonth.month || date.year != _currentMonth.year) {
+      return Colors.transparent;
+    }
 
-                if (m.activeDays == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          child: Text(label),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Ingen aktive dager',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+    if (habit.type == HabitType.boolean) {
+      final done = service.isHabitDone(habit.id, date);
+      if (!done) {
+        return Colors.grey.shade900;
+      }
+      return Colors.greenAccent.shade400;
+    } else {
+      final value = service.countForHabit(habit.id, date);
+      if (value == 0) {
+        return Colors.grey.shade900;
+      }
+      if (habit.targetValue > 0 && value >= habit.targetValue) {
+        return Colors.greenAccent.shade400;
+      }
+      return Colors.amberAccent.withOpacity(0.6);
+    }
+  }
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        child: Text(label),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: LinearProgressIndicator(
-                          value: m.ratio,
-                          minHeight: 8,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$percent%',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${m.completedDays}/${m.activeDays}',
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+  @override
+  Widget build(BuildContext context) {
+    final habit = widget.habit;
+    final service = context.watch<HabitService>();
+
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(habit.name),
+          actions: [
+            IconButton(
+              icon: Icon(
+                _showYearView ? Icons.view_module : Icons.view_list,
+              ),
+              tooltip: _showYearView ? 'Vis maned' : 'Vis ar',
+              onPressed: () {
+                setState(() {
+                  _showYearView = !_showYearView;
+                });
+              },
             ),
           ],
         ),
+        body: _showYearView
+            ? _buildYearView(context, habit, service)
+            : _buildMonthView(context, habit, service),
       ),
     );
   }
-}
 
-class _DayHabitStat {
-  final DateTime date;
-  final bool isActive;
-  final double progress;
-  final bool done;
+  Widget _buildMonthView(
+    BuildContext context,
+    Habit habit,
+    HabitService service,
+  ) {
+    final firstDayOfMonth = _currentMonth;
+    final firstWeekday = firstDayOfMonth.weekday; // 1=Mon .. 7=Sun
+    final daysInMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month + 1,
+      0,
+    ).day;
 
-  _DayHabitStat({
-    required this.date,
-    required this.isActive,
-    required this.progress,
-    required this.done,
-  });
-}
+    final List<Widget> dayCells = [];
 
-class _MonthHabitStat {
-  final int year;
-  final int month;
-  final int activeDays;
-  final int completedDays;
-  final double ratio;
+    // Ukedags-header
+    const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
 
-  _MonthHabitStat({
-    required this.year,
-    required this.month,
-    required this.activeDays,
-    required this.completedDays,
-    required this.ratio,
-  });
+    dayCells.addAll(
+      weekdayLabels
+          .map(
+            (label) => Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+
+    // Tomme celler før 1.
+    final leadingEmpty = firstWeekday - 1;
+    for (int i = 0; i < leadingEmpty; i++) {
+      dayCells.add(const SizedBox.shrink());
+    }
+
+    // Dager i måneden
+    for (int day = 1; day <= daysInMonth; day++) {
+      final date = DateTime(_currentMonth.year, _currentMonth.month, day);
+      final color = _colorForDay(
+        habit: habit,
+        service: service,
+        date: date,
+      );
+
+      final bool hasActivity =
+          color != Colors.transparent && color != Colors.grey.shade900;
+
+      dayCells.add(
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => TodayPage(initialDate: date),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: color == Colors.transparent ? Colors.transparent : color,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: hasActivity
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.grey.shade800,
+                width: 0.6,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '$day',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color == Colors.greenAccent.shade400
+                      ? Colors.black
+                      : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Fyll ut så gridet blir komplett (7 kolonner)
+    while (dayCells.length % 7 != 0) {
+      dayCells.add(const SizedBox.shrink());
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: () => _changeMonth(-1),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${_monthName(_currentMonth.month)} ${_currentMonth.year}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Trykk pa en dag for a apne den',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: () => _changeMonth(1),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: GridView.count(
+              crossAxisCount: 7,
+              children: dayCells,
+            ),
+          ),
+        ),
+        _buildLegend(context),
+      ],
+    );
+  }
+
+  Widget _buildYearView(
+    BuildContext context,
+    Habit habit,
+    HabitService service,
+  ) {
+    final List<Widget> monthCards = [];
+
+    for (int month = 1; month <= 12; month++) {
+      final DateTime first = DateTime(_currentYear, month, 1);
+      final int daysInMonth = DateTime(_currentYear, month + 1, 0).day;
+
+      int activeDays = 0;
+      int completedDays = 0;
+
+      for (int day = 1; day <= daysInMonth; day++) {
+        final d = DateTime(_currentYear, month, day);
+
+        if (habit.activeWeekdays.isNotEmpty &&
+            !habit.activeWeekdays.contains(d.weekday)) {
+          continue;
+        }
+
+        activeDays++;
+
+        if (habit.type == HabitType.boolean) {
+          if (service.isHabitDone(habit.id, d)) {
+            completedDays++;
+          }
+        } else {
+          final value = service.countForHabit(habit.id, d);
+          if (habit.targetValue > 0 && value >= habit.targetValue) {
+            completedDays++;
+          }
+        }
+      }
+
+      double ratio = 0;
+      if (activeDays > 0) {
+        ratio = completedDays / activeDays;
+      }
+
+      Color barColor;
+      if (ratio == 0) {
+        barColor = Colors.grey.shade800;
+      } else if (ratio < 0.5) {
+        barColor = Colors.amberAccent;
+      } else {
+        barColor = Colors.greenAccent.shade400;
+      }
+
+      monthCards.add(
+        Card(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    _monthName(month),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      minHeight: 8,
+                      color: barColor,
+                      backgroundColor: Colors.grey.shade900,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  activeDays == 0 ? '-' : '${(ratio * 100).round()}%',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: () => _changeYear(-1),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Ar $_currentYear',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: () => _changeYear(1),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView(
+            children: monthCards,
+          ),
+        ),
+        _buildLegend(context),
+      ],
+    );
+  }
+
+  Widget _buildLegend(BuildContext context) {
+    Widget box(Color color) => Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(color: Colors.black.withOpacity(0.2)),
+          ),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Row
+        (
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          box(Colors.grey.shade900),
+          const SizedBox(width: 6),
+          const Text(
+            'Ingen',
+            style: TextStyle(fontSize: 11),
+          ),
+          const SizedBox(width: 12),
+          box(Colors.amberAccent.withOpacity(0.6)),
+          const SizedBox(width: 6),
+          const Text(
+            'Delvis',
+            style: TextStyle(fontSize: 11),
+          ),
+          const SizedBox(width: 12),
+          box(Colors.greenAccent.shade400),
+          const SizedBox(width: 6),
+          const Text(
+            'Fullfort',
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
 }
