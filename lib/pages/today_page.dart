@@ -107,6 +107,17 @@ class TodayPage extends StatelessWidget {
                     }
                   }
 
+                  Color streakColor;
+                  if (streak <= 0) {
+                    streakColor = Colors.grey;
+                  } else if (streak <= 2) {
+                    streakColor = Colors.tealAccent;
+                  } else if (streak <= 6) {
+                    streakColor = Colors.greenAccent;
+                  } else {
+                    streakColor = Colors.amberAccent;
+                  }
+
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 6),
                     child: InkWell(
@@ -125,12 +136,39 @@ class TodayPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              habit.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isDone ? Colors.greenAccent : null,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    habit.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDone
+                                          ? Colors.greenAccent
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.whatshot,
+                                      size: 16,
+                                      color: streakColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Streak: $streak',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: streakColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             LinearProgressIndicator(
@@ -157,15 +195,6 @@ class TodayPage extends StatelessWidget {
                                     '$count / ${habit.targetValue}',
                                     style: const TextStyle(fontSize: 13),
                                   ),
-                                Text(
-                                  'Streak: $streak',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: streak > 0
-                                        ? Colors.tealAccent
-                                        : Colors.grey,
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -200,7 +229,9 @@ Widget _buildDailySummaryCard({
               Icon(Icons.info_outline),
               SizedBox(width: 12),
               Expanded(
-                child: Text('Ingen vaner for i dag. Legg til vaner under "Vaner".'),
+                child: Text(
+                  'Ingen vaner for i dag. Legg til vaner under "Vaner".',
+                ),
               ),
             ],
           ),
