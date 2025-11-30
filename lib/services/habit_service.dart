@@ -1,15 +1,39 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/habit.dart';
+
+const String _habitsStorageKey = 'habits_v1';
+const String _entriesStorageKey = 'habit_entries_v1';
 
 class HabitService extends ChangeNotifier {
   final List<Habit> _habits = [];
   final Map<String, Map<DateTime, HabitEntry>> _entriesByHabit = {};
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   List<Habit> get habits => List.unmodifiable(_habits);
 
-  void loadInitialData() {
-    if (_habits.isNotEmpty) return;
+  Future<void> init() async {
+    if (_isInitialized) return;
+
+    await _loadFromStorage();
+
+    if (_habits.isEmpty) {
+      _seedInitialData();
+      await _saveToStorage();
+    }
+
+    _isInitialized = true;
+    notifyListeners();
+  }
+
+  void _seedInitialData() {
+    _habits.clear();
+    _entriesByHabit.clear();
 
     _habits.addAll([
       Habit(
@@ -27,8 +51,6 @@ class HabitService extends ChangeNotifier {
         activeWeekdays: {1, 2, 3, 4, 5, 6, 7},
       ),
     ]);
-
-    notifyListeners();
   }
 
   List<Habit> habitsForDate(DateTime date) {
@@ -101,6 +123,7 @@ class HabitService extends ChangeNotifier {
       }
     }
 
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -112,6 +135,7 @@ class HabitService extends ChangeNotifier {
       date: d,
       value: value,
     );
+    _saveToStorage();
     notifyListeners();
   }
 
@@ -142,12 +166,79 @@ class HabitService extends ChangeNotifier {
 
   void addHabit(Habit habit) {
     _habits.add(habit);
+    _saveToStorage();
     notifyListeners();
   }
 
   void removeHabit(String habitId) {
     _habits.removeWhere((h) => h.id == habitId);
     _entriesByHabit.remove(habitId);
+    _saveToStorage();
     notifyListeners();
+  }
+
+  Future<void> _loadFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final habitsJson = prefs.getString(_habitsStorageKey);
+    if (habitsJson != null && habitsJson.isNotEmpty) {
+      try {
+        final List<dynamic> list = jsonDecode(habitsJson) as List<dynamic>;
+        _habits
+          ..clear()
+          ..addAll(
+            list.map(
+              (e) => Habit.fromMap(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            ),
+          );
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to load habits: $e');
+        }
+        _habits.clear();
+      }
+    }
+
+    final entriesJson = prefs.getString(_entriesStorageKey);
+    if (entriesJson != null && entriesJson.isNotEmpty) {
+      try {
+        final List<dynamic> list = jsonDecode(entriesJson) as List<dynamic>;
+        _entriesByHabit.clear();
+        for (final item in list) {
+          final map = Map<String, dynamic>.from(item as Map);
+          final entry = HabitEntry.fromMap(map);
+          final normalizedDate = normalizeDate(entry.date);
+          final mapForHabit =
+              _entriesByHabit.putIfAbsent(entry.habitId, () => {});
+          mapForHabit[normalizedDate] = HabitEntry(
+            habitId: entry.habitId,
+            date: normalizedDate,
+            value: entry.value,
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to load habit entries: $e');
+        }
+        _entriesByHabit.clear();
+      }
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final habitsList = _habits.map((h) => h.toMap()).toList();
+    await prefs.setString(_habitsStorageKey, jsonEncode(habitsList));
+
+    final List<Map<String, dynamic>> allEntries = [];
+    _entriesByHabit.forEach((habitId, dateMap) {
+      for (final entry in dateMap.values) {
+        allEntries.add(entry.toMap());
+      }
+    });
+    await prefs.setString(_entriesStorageKey, jsonEncode(allEntries));
   }
 }

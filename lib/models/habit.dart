@@ -41,6 +41,34 @@ class Habit {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type.name,
+      'targetValue': targetValue,
+      'activeWeekdays': activeWeekdays.toList(),
+      'isArchived': isArchived,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Habit.fromMap(Map<String, dynamic> map) {
+    return Habit(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      type: (map['type'] as String) == 'count'
+          ? HabitType.count
+          : HabitType.boolean,
+      targetValue: map['targetValue'] as int,
+      activeWeekdays: (map['activeWeekdays'] as List<dynamic>)
+          .map((e) => e as int)
+          .toSet(),
+      isArchived: (map['isArchived'] as bool?) ?? false,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+    );
+  }
 }
 
 class HabitEntry {
@@ -53,6 +81,22 @@ class HabitEntry {
     required this.date,
     required this.value,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'habitId': habitId,
+      'date': date.toIso8601String(),
+      'value': value,
+    };
+  }
+
+  factory HabitEntry.fromMap(Map<String, dynamic> map) {
+    return HabitEntry(
+      habitId: map['habitId'] as String,
+      date: DateTime.parse(map['date'] as String),
+      value: map['value'] as int,
+    );
+  }
 }
 
 DateTime normalizeDate(DateTime dt) {

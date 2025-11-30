@@ -17,7 +17,7 @@ class HabitsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => HabitService()..loadInitialData(),
+      create: (_) => HabitService()..init(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Habits',
