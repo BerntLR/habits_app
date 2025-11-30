@@ -51,6 +51,12 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     });
   }
 
+  void _changeYear(int delta) {
+    setState(() {
+      _year += delta;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final service = context.watch<HabitService>();
@@ -80,7 +86,17 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
               child: _buildMonthSection(context, monthStats),
             ),
             const SizedBox(height: 24),
-            _buildYearSection(context, yearStats),
+            GestureDetector(
+              onHorizontalDragEnd: (details) {
+                final v = details.primaryVelocity ?? 0;
+                if (v < 0) {
+                  _changeYear(1);
+                } else if (v > 0) {
+                  _changeYear(-1);
+                }
+              },
+              child: _buildYearSection(context, yearStats),
+            ),
           ],
         ),
       ),
@@ -348,9 +364,22 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Dette aret ($year)',
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () => _changeYear(-1),
+                ),
+                Text(
+                  'Dette aret ($year)',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () => _changeYear(1),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Column(
