@@ -14,6 +14,10 @@ class TodayPage extends StatefulWidget {
 class _TodayPageState extends State<TodayPage> {
   late DateTime _selectedDate;
 
+  // Animasjons-state per vane + dato
+  final Map<String, bool> _pulseMap = {};
+  final Map<String, bool> _glowMap = {};
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +54,35 @@ class _TodayPageState extends State<TodayPage> {
 
   String _dateLabel(DateTime d) {
     return '${_weekdayName(d.weekday)} ${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
+
+  String _cardKeyFor(Habit habit) {
+    final d = _selectedDate;
+    return '${habit.id}_${d.year}-${d.month}-${d.day}';
+  }
+
+  void _triggerPulse(String key) {
+    setState(() {
+      _pulseMap[key] = true;
+    });
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted) return;
+      setState(() {
+        _pulseMap[key] = false;
+      });
+    });
+  }
+
+  void _triggerGlow(String key) {
+    setState(() {
+      _glowMap[key] = true;
+    });
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (!mounted) return;
+      setState(() {
+        _glowMap[key] = false;
+      });
+    });
   }
 
   @override
@@ -148,47 +181,87 @@ class _TodayPageState extends State<TodayPage> {
     final service = context.watch<HabitService>();
     final done = service.isHabitDone(habit.id, _selectedDate);
 
+    final String keyStr = _cardKeyFor(habit);
+    final bool pulsing = _pulseMap[keyStr] ?? false;
+    final bool glowing = _glowMap[keyStr] ?? false;
+
     final Color bgColor = done ? Colors.greenAccent : Colors.grey.shade900;
     final Color borderColor =
         done ? Colors.green.shade700 : Colors.grey.shade800;
     final Color textColor = done ? Colors.black : Colors.white;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      color: bgColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: 1),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          context.read<HabitService>().toggleHabit(habit.id, _selectedDate);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Icon(
-                done
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
-                color: done ? Colors.green.shade900 : Colors.white70,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  habit.name,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
+    return AnimatedScale(
+      scale: pulsing ? 0.96 : 1.0,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: glowing
+              ? [
+                  BoxShadow(
+                    color: Colors.greenAccent.withOpacity(0.6),
+                    blurRadius: 18,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 4),
                   ),
-                ),
+                ]
+              : [],
+        ),
+        child: Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          color: bgColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor, width: 1),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              final service = context.read<HabitService>();
+              final wasDone =
+                  service.isHabitDone(habit.id, _selectedDate);
+
+              service.toggleHabit(habit.id, _selectedDate);
+
+              if (!wasDone) {
+                _triggerPulse(keyStr);
+                _triggerGlow(keyStr);
+              } else {
+                _triggerPulse(keyStr);
+              }
+            },
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Icon(
+                    done
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: done
+                        ? Colors.green.shade900
+                        : Colors.white70,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      habit.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStreakChip(context, habit),
+                ],
               ),
-              const SizedBox(width: 8),
-              _buildStreakChip(context, habit),
-            ],
+            ),
           ),
         ),
       ),
@@ -199,6 +272,9 @@ class _TodayPageState extends State<TodayPage> {
     final service = context.watch<HabitService>();
     final current = service.countForHabit(habit.id, _selectedDate);
     final target = habit.targetValue;
+
+    final String keyStr = _cardKeyFor(habit);
+    final bool glowing = _glowMap[keyStr] ?? false;
 
     double ratio = 0.0;
     if (target > 0) {
@@ -220,80 +296,109 @@ class _TodayPageState extends State<TodayPage> {
       bgColor = Colors.grey.shade900;
     }
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      color: bgColor,
-      shape: RoundedRectangleBorder(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: 1),
+        boxShadow: glowing
+            ? [
+                BoxShadow(
+                  color: Colors.greenAccent.withOpacity(0.6),
+                  blurRadius: 18,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              Icons.countertops_outlined,
-              color: textColor,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    habit.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: textColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        target > 0 ? '$current / $target' : '$current',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: textColor.withOpacity(0.9),
-                        ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        color: bgColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: borderColor, width: 1),
+        ),
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                Icons.countertops_outlined,
+                color: textColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      habit.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(width: 8),
-                      if (target > 0)
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: ratio,
-                              minHeight: 6,
-                            ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          target > 0 ? '$current / $target' : '$current',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: textColor.withOpacity(0.9),
                           ),
                         ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        if (target > 0)
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: ratio,
+                                minHeight: 6,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline),
-              tooltip: 'Nullstill for i dag',
-              onPressed: () {
-                context
-                    .read<HabitService>()
-                    .resetForDate(habit.id, _selectedDate);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'Ok ett steg',
-              onPressed: () {
-                context
-                    .read<HabitService>()
-                    .incrementCount(habit.id, _selectedDate);
-              },
-            ),
-          ],
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                tooltip: 'Nullstill for i dag',
+                onPressed: () {
+                  context
+                      .read<HabitService>()
+                      .resetForDate(habit.id, _selectedDate);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                tooltip: 'Ok ett steg',
+                onPressed: () {
+                  final service = context.read<HabitService>();
+                  final prev =
+                      service.countForHabit(habit.id, _selectedDate);
+                  service.incrementCount(habit.id, _selectedDate);
+
+                  if (target > 0) {
+                    int newValue = prev + 1;
+                    if (newValue > target) {
+                      newValue = target;
+                    }
+                    if (prev < target && newValue >= target) {
+                      _triggerGlow(keyStr);
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
