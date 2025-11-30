@@ -30,7 +30,7 @@ class HabitsPage extends StatelessWidget {
                 subtitle: Text(
                   habit.type == HabitType.boolean
                       ? 'Ja/Nei vane'
-                      : 'Tellende vane (mal: ${habit.targetValue})',
+                      : 'Tellende (${habit.targetValue})',
                 ),
                 onTap: () async {
                   await _showHabitDialog(
@@ -86,17 +86,26 @@ class HabitsPage extends StatelessWidget {
 Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
   final service = context.read<HabitService>();
 
-  final nameController = TextEditingController(
-    text: existing?.name ?? '',
-  );
-
+  final nameController = TextEditingController(text: existing?.name ?? '');
   HabitType selectedType = existing?.type ?? HabitType.boolean;
-
   final targetController = TextEditingController(
     text: existing != null ? existing.targetValue.toString() : '1',
   );
 
+  Set<int> weekdays =
+      existing?.activeWeekdays.toSet() ?? {1, 2, 3, 4, 5, 6, 7};
+
   final bool isEditing = existing != null;
+
+  const weekdayLabels = {
+    1: 'Man',
+    2: 'Tir',
+    3: 'Ons',
+    4: 'Tor',
+    5: 'Fre',
+    6: 'Lør',
+    7: 'Søn',
+  };
 
   await showDialog<void>(
     context: context,
@@ -144,10 +153,41 @@ Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
                       controller: targetController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText:
-                            'Mal (for eksempel 10 minutter eller 5 glass)',
+                        labelText: 'Mal (for eksempel 10 minutter eller 5 glass)',
                       ),
                     ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Ukedager',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    children: weekdayLabels.entries.map((entry) {
+                      final day = entry.key;
+                      final label = entry.value;
+
+                      final selected = weekdays.contains(day);
+
+                      return ChoiceChip(
+                        label: Text(label),
+                        selected: selected,
+                        onSelected: (_) {
+                          setState(() {
+                            if (selected) {
+                              weekdays.remove(day);
+                            } else {
+                              weekdays.add(day);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
                 ],
               ),
             ),
@@ -159,9 +199,7 @@ Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
               ElevatedButton(
                 onPressed: () {
                   final name = nameController.text.trim();
-                  if (name.isEmpty) {
-                    return;
-                  }
+                  if (name.isEmpty) return;
 
                   final target = selectedType == HabitType.count
                       ? (int.tryParse(targetController.text) ?? 1)
@@ -172,7 +210,7 @@ Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
                       name: name,
                       type: selectedType,
                       targetValue: target,
-                      activeWeekdays: existing.activeWeekdays,
+                      activeWeekdays: weekdays,
                     );
                     service.updateHabit(updated);
                   } else {
@@ -181,7 +219,7 @@ Future<void> _showHabitDialog(BuildContext context, {Habit? existing}) async {
                       name: name,
                       type: selectedType,
                       targetValue: target,
-                      activeWeekdays: {1, 2, 3, 4, 5, 6, 7},
+                      activeWeekdays: weekdays,
                     );
                     service.addHabit(newHabit);
                   }
