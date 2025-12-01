@@ -62,7 +62,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     return names[month - 1];
   }
 
-  Color _colorForDay({
+  Color _colorForDayMonth({
     required Habit habit,
     required HabitService service,
     required DateTime date,
@@ -89,6 +89,32 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     }
   }
 
+  Color _colorForDayYear({
+    required Habit habit,
+    required HabitService service,
+    required DateTime date,
+  }) {
+    // Dager som ikke er aktive ukedager kan behandles som "ingen" (grå)
+    if (habit.activeWeekdays.isNotEmpty &&
+        !habit.activeWeekdays.contains(date.weekday)) {
+      return Colors.grey.shade900;
+    }
+
+    if (habit.type == HabitType.boolean) {
+      final done = service.isHabitDone(habit.id, date);
+      return done ? Colors.greenAccent.shade400 : Colors.grey.shade900;
+    } else {
+      final value = service.countForHabit(habit.id, date);
+      if (value == 0) {
+        return Colors.grey.shade900;
+      }
+      if (habit.targetValue > 0 && value >= habit.targetValue) {
+        return Colors.greenAccent.shade400;
+      }
+      return Colors.amberAccent.withOpacity(0.6);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final habit = widget.habit;
@@ -103,7 +129,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
               icon: Icon(
                 _showYearView ? Icons.view_module : Icons.view_list,
               ),
-              tooltip: _showYearView ? 'Vis maned' : 'Vis ar',
+              tooltip: _showYearView ? 'Vis ar' : 'Vis maned',
               onPressed: () {
                 setState(() {
                   _showYearView = !_showYearView;
@@ -163,7 +189,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     // Dager i måneden
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(_currentMonth.year, _currentMonth.month, day);
-      final color = _colorForDay(
+      final color = _colorForDayMonth(
         habit: habit,
         service: service,
         date: date,
@@ -275,80 +301,100 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     for (int month = 1; month <= 12; month++) {
       final DateTime first = DateTime(_currentYear, month, 1);
+      final int firstWeekday = first.weekday; // 1=Mon .. 7=Sun
       final int daysInMonth = DateTime(_currentYear, month + 1, 0).day;
 
-      int activeDays = 0;
-      int completedDays = 0;
+      final List<Widget> dayCells = [];
 
+      // Ukedags-header
+      const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+      dayCells.addAll(
+        weekdayLabels
+            .map(
+              (label) => Center(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+      );
+
+      // Tomme celler før 1.
+      final leadingEmpty = firstWeekday - 1;
+      for (int i = 0; i < leadingEmpty; i++) {
+        dayCells.add(const SizedBox.shrink());
+      }
+
+      // Dager i måneden
       for (int day = 1; day <= daysInMonth; day++) {
         final d = DateTime(_currentYear, month, day);
+        final color = _colorForDayYear(
+          habit: habit,
+          service: service,
+          date: d,
+        );
 
-        if (habit.activeWeekdays.isNotEmpty &&
-            !habit.activeWeekdays.contains(d.weekday)) {
-          continue;
-        }
-
-        activeDays++;
-
-        if (habit.type == HabitType.boolean) {
-          if (service.isHabitDone(habit.id, d)) {
-            completedDays++;
-          }
-        } else {
-          final value = service.countForHabit(habit.id, d);
-          if (habit.targetValue > 0 && value >= habit.targetValue) {
-            completedDays++;
-          }
-        }
+        dayCells.add(
+          Container(
+            margin: const EdgeInsets.all(1),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(
+                color: Colors.black.withOpacity(0.25),
+                width: 0.4,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '$day',
+                style: TextStyle(
+                  fontSize: 9,
+                  color:
+                      color == Colors.greenAccent.shade400 ? Colors.black : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        );
       }
 
-      double ratio = 0;
-      if (activeDays > 0) {
-        ratio = completedDays / activeDays;
-      }
-
-      Color barColor;
-      if (ratio == 0) {
-        barColor = Colors.grey.shade800;
-      } else if (ratio < 0.5) {
-        barColor = Colors.amberAccent;
-      } else {
-        barColor = Colors.greenAccent.shade400;
+      // Fyll ut så gridet blir komplett (7 kolonner)
+      while (dayCells.length % 7 != 0) {
+        dayCells.add(const SizedBox.shrink());
       }
 
       monthCards.add(
         Card(
           margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Column(
               children: [
-                SizedBox(
-                  width: 40,
+                Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
                     _monthName(month),
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: ratio,
-                      minHeight: 8,
-                      color: barColor,
-                      backgroundColor: Colors.grey.shade900,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  activeDays == 0 ? '-' : '${(ratio * 100).round()}%',
-                  style: const TextStyle(fontSize: 12),
+                const SizedBox(height: 4),
+                GridView.count(
+                  crossAxisCount: 7,
+                  mainAxisSpacing: 1,
+                  crossAxisSpacing: 1,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: dayCells,
                 ),
               ],
             ),
