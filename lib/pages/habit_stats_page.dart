@@ -357,39 +357,52 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       );
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () => _changeYear(-1),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'Ar $_currentYear',
-                    style: Theme.of(context).textTheme.titleMedium,
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        final v = details.primaryVelocity;
+        if (v == null) return;
+        if (v < 0) {
+          // swipe venstre => neste ar
+          _changeYear(1);
+        } else if (v > 0) {
+          // swipe hoyre => forrige ar
+          _changeYear(-1);
+        }
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () => _changeYear(-1),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'Ar $_currentYear',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () => _changeYear(1),
-              ),
-            ],
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () => _changeYear(1),
+                ),
+              ],
+            ),
           ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: ListView(
-            children: monthCards,
+          const Divider(height: 1),
+          Expanded(
+            child: ListView(
+              children: monthCards,
+            ),
           ),
-        ),
-        _buildLegend(context),
-      ],
+          _buildLegend(context),
+        ],
+      ),
     );
   }
 
@@ -406,8 +419,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      child: Row
-        (
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           box(Colors.grey.shade900),
