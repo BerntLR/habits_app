@@ -87,11 +87,28 @@ class _TodayPageState extends State<TodayPage> {
     });
   }
 
-  // Kan brukes senere hvis vi vil hoppe til dato uten ny side
   void jumpToDate(DateTime date) {
     setState(() {
       _selectedDate = _normalize(date);
     });
+  }
+
+  double _completionRatioForHabit(
+    Habit habit,
+    HabitService service,
+    DateTime date,
+  ) {
+    if (habit.type == HabitType.boolean) {
+      final done = service.isHabitDone(habit.id, date);
+      return done ? 1.0 : 0.0;
+    } else {
+      final current = service.countForHabit(habit.id, date);
+      if (habit.targetValue <= 0) {
+        return current > 0 ? 1.0 : 0.0;
+      }
+      final r = current / habit.targetValue;
+      return r.clamp(0.0, 1.0);
+    }
   }
 
   @override
@@ -106,7 +123,41 @@ class _TodayPageState extends State<TodayPage> {
       );
     }
 
-    final habits = service.habitsForDate(_selectedDate);
+    final List<Habit> habits =
+        List<Habit>.from(service.habitsForDate(_selectedDate));
+
+    // Sorter slik at:
+    // - ikke fullforte vaner kommer forst
+    // - fullforte nederst
+    // - teller-vaner sorteres etter hvor naer man er malet
+    habits.sort((a, b) {
+      final ra = _completionRatioForHabit(a, service, _selectedDate);
+      final rb = _completionRatioForHabit(b, service, _selectedDate);
+
+      final aDone = ra >= 1.0;
+      final bDone = rb >= 1.0;
+
+      if (aDone != bDone) {
+        // ikke fullfort (false) skal forst
+        return aDone ? 1 : -1;
+      }
+
+      // Blant ikke-fullforte: lavest ratio forst
+      // Blant fullforte: spiller mindre rolle
+      return ra.compareTo(rb);
+    });
+
+    final int total = habits.length;
+    int completed = 0;
+    for (final h in habits) {
+      final r = _completionRatioForHabit(h, service, _selectedDate);
+      if (r >= 1.0) {
+        completed++;
+      }
+    }
+
+    final double dayRatio =
+        total == 0 ? 0.0 : (completed / total).clamp(0.0, 1.0);
 
     return SafeArea(
       child: Scaffold(
@@ -116,6 +167,7 @@ class _TodayPageState extends State<TodayPage> {
         ),
         body: Column(
           children: [
+            // Dato-navigasjon
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -155,6 +207,48 @@ class _TodayPageState extends State<TodayPage> {
                 ],
               ),
             ),
+            // Dagens progress
+            if (total > 0)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Card(
+                  color: Colors.grey.shade900,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Colors.grey.shade800,
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$completed av $total vaner fullfort',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: dayRatio,
+                            minHeight: 6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             const Divider(height: 1),
             Expanded(
               child: habits.isEmpty
