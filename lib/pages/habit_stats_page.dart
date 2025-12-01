@@ -94,7 +94,6 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     required HabitService service,
     required DateTime date,
   }) {
-    // Dager som ikke er aktive ukedager kan behandles som "ingen" (grå)
     if (habit.activeWeekdays.isNotEmpty &&
         !habit.activeWeekdays.contains(date.weekday)) {
       return Colors.grey.shade900;
@@ -160,7 +159,6 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     final List<Widget> dayCells = [];
 
-    // Ukedags-header
     const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
 
     dayCells.addAll(
@@ -180,13 +178,11 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           .toList(),
     );
 
-    // Tomme celler før 1.
     final leadingEmpty = firstWeekday - 1;
     for (int i = 0; i < leadingEmpty; i++) {
       dayCells.add(const SizedBox.shrink());
     }
 
-    // Dager i måneden
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(_currentMonth.year, _currentMonth.month, day);
       final color = _colorForDayMonth(
@@ -235,7 +231,6 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       );
     }
 
-    // Fyll ut så gridet blir komplett (7 kolonner)
     while (dayCells.length % 7 != 0) {
       dayCells.add(const SizedBox.shrink());
     }
@@ -297,41 +292,12 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     Habit habit,
     HabitService service,
   ) {
-    final List<Widget> monthCards = [];
+    final List<Widget> monthTiles = [];
 
     for (int month = 1; month <= 12; month++) {
-      final DateTime first = DateTime(_currentYear, month, 1);
-      final int firstWeekday = first.weekday; // 1=Mon .. 7=Sun
       final int daysInMonth = DateTime(_currentYear, month + 1, 0).day;
+      final List<Widget> dots = [];
 
-      final List<Widget> dayCells = [];
-
-      // Ukedags-header
-      const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
-      dayCells.addAll(
-        weekdayLabels
-            .map(
-              (label) => Center(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            )
-            .toList(),
-      );
-
-      // Tomme celler før 1.
-      final leadingEmpty = firstWeekday - 1;
-      for (int i = 0; i < leadingEmpty; i++) {
-        dayCells.add(const SizedBox.shrink());
-      }
-
-      // Dager i måneden
       for (int day = 1; day <= daysInMonth; day++) {
         final d = DateTime(_currentYear, month, day);
         final color = _colorForDayYear(
@@ -340,61 +306,39 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           date: d,
         );
 
-        dayCells.add(
+        dots.add(
           Container(
+            width: 6,
+            height: 6,
             margin: const EdgeInsets.all(1),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(3),
-              border: Border.all(
-                color: Colors.black.withOpacity(0.25),
-                width: 0.4,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                '$day',
-                style: TextStyle(
-                  fontSize: 9,
-                  color:
-                      color == Colors.greenAccent.shade400 ? Colors.black : Colors.white,
-                ),
-              ),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
         );
       }
 
-      // Fyll ut så gridet blir komplett (7 kolonner)
-      while (dayCells.length % 7 != 0) {
-        dayCells.add(const SizedBox.shrink());
-      }
-
-      monthCards.add(
+      monthTiles.add(
         Card(
-          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          margin: const EdgeInsets.all(4),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 6),
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _monthName(month),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  _monthName(month),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
-                GridView.count(
-                  crossAxisCount: 7,
-                  mainAxisSpacing: 1,
-                  crossAxisSpacing: 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: dayCells,
+                Wrap(
+                  spacing: 0,
+                  runSpacing: 0,
+                  alignment: WrapAlignment.center,
+                  children: dots,
                 ),
               ],
             ),
@@ -408,10 +352,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
         final v = details.primaryVelocity;
         if (v == null) return;
         if (v < 0) {
-          // swipe venstre => neste ar
           _changeYear(1);
         } else if (v > 0) {
-          // swipe hoyre => forrige ar
           _changeYear(-1);
         }
       },
@@ -442,8 +384,10 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: ListView(
-              children: monthCards,
+            child: GridView.count(
+              crossAxisCount: 3,
+              childAspectRatio: 0.8,
+              children: monthTiles,
             ),
           ),
           _buildLegend(context),
