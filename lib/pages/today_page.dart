@@ -31,7 +31,7 @@ class _TodayPageState extends State<TodayPage> {
     final newDate = _currentDate.add(Duration(days: delta));
     final today = _normalizeDate(DateTime.now());
 
-    // Ikke gå inn i fremtiden
+    // Ikke ga inn i fremtiden
     if (newDate.isAfter(today)) return;
 
     setState(() {
@@ -76,7 +76,10 @@ class _TodayPageState extends State<TodayPage> {
         children: [
           const SizedBox(height: 8),
           _buildDateHeader(context),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
+          if (habits.isNotEmpty)
+            _buildTodaySummary(context, habitService, habits),
+          if (habits.isNotEmpty) const SizedBox(height: 4),
           Expanded(
             child: habits.isEmpty
                 ? const Center(
@@ -143,6 +146,45 @@ class _TodayPageState extends State<TodayPage> {
           IconButton(
             icon: const Icon(Icons.chevron_right),
             onPressed: isToday ? null : () => _changeDay(1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodaySummary(
+    BuildContext context,
+    HabitService service,
+    List<Habit> habits,
+  ) {
+    final total = habits.length;
+    int doneCount = 0;
+    for (final h in habits) {
+      if (service.isHabitDone(h.id, _currentDate)) {
+        doneCount++;
+      }
+    }
+    final progress = total == 0 ? 0.0 : doneCount / total;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Fullfort $doneCount av $total vaner',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+            ),
           ),
         ],
       ),
