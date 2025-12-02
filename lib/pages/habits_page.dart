@@ -37,13 +37,11 @@ class _HabitsPageState extends State<HabitsPage> {
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
               itemCount: activeHabits.length,
               onReorder: (oldIndex, newIndex) {
-                context
-                    .read<HabitService>()
-                    .reorderHabits(oldIndex, newIndex);
+                context.read<HabitService>().reorderHabits(oldIndex, newIndex);
               },
               itemBuilder: (context, index) {
                 final habit = activeHabits[index];
-                return _buildHabitTile(context, habit, index);
+                return _buildHabitTile(context, habit);
               },
             ),
       floatingActionButton: FloatingActionButton(
@@ -53,7 +51,7 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 
-  Widget _buildHabitTile(BuildContext context, Habit habit, int index) {
+  Widget _buildHabitTile(BuildContext context, Habit habit) {
     return Dismissible(
       key: ValueKey(habit.id),
       direction: DismissDirection.endToStart,
@@ -88,12 +86,14 @@ class _HabitsPageState extends State<HabitsPage> {
         );
         if (confirmed == true) {
           await context.read<HabitService>().archiveHabit(habit.id);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Vane arkivert: ${habit.name}'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Vane arkivert: ${habit.name}'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
           return true;
         }
         return false;
@@ -144,117 +144,122 @@ class _HabitsPageState extends State<HabitsPage> {
       showDragHandle: true,
       builder: (ctx) {
         final bottomInsets = MediaQuery.of(ctx).viewInsets.bottom;
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: bottomInsets,
-            left: 16,
-            right: 16,
-            top: 12,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Ny vane',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: bottomInsets,
+                left: 16,
+                right: 16,
+                top: 12,
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Navn',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: DropdownButtonFormField<HabitType>(
-                      value: selectedType,
-                      decoration: const InputDecoration(
-                        labelText: 'Type',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: HabitType.boolean,
-                          child: Text('Boolean (av/på)'),
-                        ),
-                        DropdownMenuItem(
-                          value: HabitType.count,
-                          child: Text('Telle-vane'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          selectedType = value;
-                        });
-                      },
+                  const Text(
+                    'Ny vane',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: targetController,
-                      enabled: selectedType == HabitType.count,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Mal per dag',
-                        border: OutlineInputBorder(),
-                      ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Navn',
+                      border: OutlineInputBorder(),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Avbryt'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final name = nameController.text.trim();
-                      if (name.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Vane trenger et navn.'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<HabitType>(
+                          value: selectedType,
+                          decoration: const InputDecoration(
+                            labelText: 'Type',
+                            border: OutlineInputBorder(),
                           ),
-                        );
-                        return;
-                      }
-
-                      int? target;
-                      if (selectedType == HabitType.count) {
-                        final t = int.tryParse(targetController.text.trim());
-                        target = (t == null || t <= 0) ? 1 : t;
-                      }
-
-                      await context.read<HabitService>().addHabit(
-                            name: name,
-                            type: selectedType,
-                            targetValue: target,
-                          );
-
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                      }
-                    },
-                    child: const Text('Lagre'),
+                          items: const [
+                            DropdownMenuItem(
+                              value: HabitType.boolean,
+                              child: Text('Boolean (av/på)'),
+                            ),
+                            DropdownMenuItem(
+                              value: HabitType.count,
+                              child: Text('Telle-vane'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setModalState(() {
+                              selectedType = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: targetController,
+                          enabled: selectedType == HabitType.count,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Mal per dag',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Avbryt'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final name = nameController.text.trim();
+                          if (name.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vane trenger et navn.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          int? target;
+                          if (selectedType == HabitType.count) {
+                            final t =
+                                int.tryParse(targetController.text.trim());
+                            target = (t == null || t <= 0) ? 1 : t;
+                          }
+
+                          await context.read<HabitService>().addHabit(
+                                name: name,
+                                type: selectedType,
+                                targetValue: target,
+                              );
+
+                          if (context.mounted) {
+                            Navigator.of(ctx).pop();
+                          }
+                        },
+                        child: const Text('Lagre'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
-              const SizedBox(height: 12),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -285,9 +290,9 @@ class _HabitsPageState extends State<HabitsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Rediger vane',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
