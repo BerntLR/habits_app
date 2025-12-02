@@ -69,7 +69,33 @@ class _TodayPageState extends State<TodayPage> {
   @override
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
-    final habits = habitService.habitsForDate(_currentDate);
+    final rawHabits = habitService.habitsForDate(_currentDate);
+
+    // Sortering for Today:
+    // 1) Boolean-vaner først
+    // 2) Telle-vaner etterpå
+    // 3) Innenfor samme type: sortOrder, fall-back pa navn
+    final habits = [...rawHabits]..sort((a, b) {
+        if (a.type != b.type) {
+          if (a.type == HabitType.boolean && b.type == HabitType.count) {
+            return -1;
+          }
+          if (a.type == HabitType.count && b.type == HabitType.boolean) {
+            return 1;
+          }
+        }
+        // Samme type: forsok sortOrder, ellers navn
+        try {
+          final ao = a.sortOrder;
+          final bo = b.sortOrder;
+          if (ao != bo) {
+            return ao.compareTo(bo);
+          }
+        } catch (_) {
+          // Hvis sortOrder ikke finnes, ignorer
+        }
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
 
     return SafeArea(
       child: Column(
