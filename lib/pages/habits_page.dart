@@ -136,6 +136,7 @@ class _HabitsPageState extends State<HabitsPage> {
   Future<void> _showAddHabitSheet(BuildContext context) async {
     final nameController = TextEditingController();
     final targetController = TextEditingController(text: '1');
+    final targetFocusNode = FocusNode();
     HabitType selectedType = HabitType.boolean;
 
     await showModalBottomSheet<void>(
@@ -196,6 +197,17 @@ class _HabitsPageState extends State<HabitsPage> {
                             setModalState(() {
                               selectedType = value;
                             });
+                            if (value == HabitType.count) {
+                              Future.delayed(const Duration(milliseconds: 80),
+                                  () {
+                                if (targetFocusNode.canRequestFocus) {
+                                  FocusScope.of(ctx)
+                                      .requestFocus(targetFocusNode);
+                                }
+                              });
+                            } else {
+                              FocusScope.of(ctx).unfocus();
+                            }
                           },
                         ),
                       ),
@@ -203,6 +215,7 @@ class _HabitsPageState extends State<HabitsPage> {
                       Expanded(
                         child: TextField(
                           controller: targetController,
+                          focusNode: targetFocusNode,
                           enabled: selectedType == HabitType.count,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
