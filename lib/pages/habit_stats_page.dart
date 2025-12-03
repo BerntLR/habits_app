@@ -282,7 +282,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
             ),
           ),
         ),
-        _buildLegend(context),
+        const StatusLegend(),
       ],
     );
   }
@@ -390,50 +390,94 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
               children: monthTiles,
             ),
           ),
-          _buildLegend(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegend(BuildContext context) {
-    Widget box(Color color) => Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: Colors.black.withOpacity(0.2)),
-          ),
-        );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          box(Colors.grey.shade900),
-          const SizedBox(width: 6),
-          const Text(
-            'Ingen',
-            style: TextStyle(fontSize: 11),
-          ),
-          const SizedBox(width: 12),
-          box(Colors.amberAccent.withOpacity(0.6)),
-          const SizedBox(width: 6),
-          const Text(
-            'Delvis',
-            style: TextStyle(fontSize: 11),
-          ),
-          const SizedBox(width: 12),
-          box(Colors.greenAccent.shade400),
-          const SizedBox(width: 6),
-          const Text(
-            'Fullfort',
-            style: TextStyle(fontSize: 11),
-          ),
+          const StatusLegend(),
         ],
       ),
     );
   }
 }
+
+class StatusLegend extends StatelessWidget {
+  const StatusLegend({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final noneColor = Colors.grey.shade900;
+    final partialColor = Colors.amberAccent.withOpacity(0.6);
+    final fullColor = Colors.greenAccent.shade400;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 16,
+          runSpacing: 8,
+          children: [
+            LegendItem(
+              color: noneColor,
+              label: 'Ingen',
+            ),
+            LegendItem(
+              color: partialColor,
+              label: 'Delvis',
+            ),
+            LegendItem(
+              color: fullColor,
+              label: 'Fullfort',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const LegendItem({
+    super.key,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
