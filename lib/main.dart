@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'models/habit.dart';
 import 'services/habit_service.dart';
+import 'pages/bullpeak_intro_page.dart';
 import 'pages/today_page.dart';
 import 'pages/habits_page.dart';
 import 'pages/stats_page.dart';
@@ -20,9 +20,13 @@ class HabitsApp extends StatelessWidget {
       create: (_) => HabitService()..init(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "Karo´s Habits",
+        title: "Karo's Habits",
         theme: _buildKaroTheme(),
-        home: const HomeShell(),
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const BullpeakIntroPage(),
+          '/home': (_) => const HomeShell(),
+        },
       ),
     );
   }
