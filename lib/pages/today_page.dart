@@ -205,9 +205,12 @@ class _TodayPageState extends State<TodayPage> {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.backup_outlined),
-            onPressed: () => _showBackupSheet(context),
+          Tooltip(
+            message: 'Eksporter/importer backup',
+            child: IconButton(
+              icon: const Icon(Icons.backup_outlined),
+              onPressed: () => _showBackupSheet(context),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
@@ -250,6 +253,14 @@ class _TodayPageState extends State<TodayPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tips: Trykk pa en vane for a markere den som gjort. For telle-vaner kan du bruke + og -.',
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -387,6 +398,7 @@ class _TodayHabitTile extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.remove),
           splashRadius: 20,
+          tooltip: 'Nullstill denne dagen',
           onPressed: count > 0
               ? () {
                   // Reset til 0 ved denne datoen
@@ -397,6 +409,7 @@ class _TodayHabitTile extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add),
           splashRadius: 20,
+          tooltip: 'Ok antallet med 1',
           onPressed: () {
             service.incrementCount(habit.id, date);
           },
