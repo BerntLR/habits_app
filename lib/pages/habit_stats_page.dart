@@ -161,6 +161,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
 
+    // Ukedags-header med mørk tekst for bedre lesbarhet
     dayCells.addAll(
       weekdayLabels
           .map(
@@ -169,8 +170,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                 label,
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -251,7 +252,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                   children: [
                     Text(
                       '${_monthName(_currentMonth.month)} ${_currentMonth.year}',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.black87,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
@@ -259,7 +262,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                       'Trykk pa en dag for a apne den',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white70,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -293,10 +296,15 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     HabitService service,
   ) {
     final List<Widget> monthTiles = [];
+    final theme = Theme.of(context);
+    final now = DateTime.now();
 
     for (int month = 1; month <= 12; month++) {
       final int daysInMonth = DateTime(_currentYear, month + 1, 0).day;
       final List<Widget> dots = [];
+
+      final bool isCurrentMonth =
+          _currentYear == now.year && month == now.month;
 
       for (int day = 1; day <= daysInMonth; day++) {
         final d = DateTime(_currentYear, month, day);
@@ -319,18 +327,36 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
         );
       }
 
+      final Color cardColor = isCurrentMonth
+          ? theme.colorScheme.secondary.withOpacity(0.12)
+          : Colors.white;
+      final Color borderColor = isCurrentMonth
+          ? theme.colorScheme.secondary
+          : Colors.black.withOpacity(0.08);
+
       monthTiles.add(
         Card(
           margin: const EdgeInsets.all(4),
+          color: cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: borderColor,
+              width: isCurrentMonth ? 1.4 : 0.8,
+            ),
+          ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(6, 4, 6, 6),
             child: Column(
               children: [
                 Text(
                   _monthName(month),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
+                    color: isCurrentMonth
+                        ? theme.colorScheme.primary
+                        : theme.textTheme.bodyMedium?.color?.withOpacity(0.9),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -371,7 +397,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                   child: Center(
                     child: Text(
                       'Ar $_currentYear',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.black87,
+                          ),
                     ),
                   ),
                 ),
