@@ -316,12 +316,12 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
         dots.add(
           Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.all(1),
+            width: 10,
+            height: 10,
+            margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
         );
@@ -360,11 +360,15 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Wrap(
-                  spacing: 0,
-                  runSpacing: 0,
-                  alignment: WrapAlignment.center,
-                  children: dots,
+                Expanded(
+                  child: Center(
+                    child: Wrap(
+                      spacing: 2,
+                      runSpacing: 2,
+                      alignment: WrapAlignment.center,
+                      children: dots,
+                    ),
+                  ),
                 ),
               ],
             ),
