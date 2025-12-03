@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
+import '../services/backup_service.dart';
 
 class TodayPage extends StatefulWidget {
   final DateTime? initialDate;
@@ -15,6 +16,7 @@ class TodayPage extends StatefulWidget {
 
 class _TodayPageState extends State<TodayPage> {
   late DateTime _currentDate;
+  final BackupService _backupService = BackupService();
 
   @override
   void initState() {
@@ -66,6 +68,41 @@ class _TodayPageState extends State<TodayPage> {
     return '${date.day}. ${months[date.month - 1]} ${date.year}';
   }
 
+  Future<void> _showBackupSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.cloud_upload_outlined),
+                title: const Text('Eksporter backup'),
+                subtitle: const Text('Lagre vaner og historikk til fil'),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  await _backupService.exportBackup(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.cloud_download_outlined),
+                title: const Text('Importer backup'),
+                subtitle: const Text('Gjenopprett fra tidligere fil'),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  await _backupService.importBackup(context);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
@@ -84,7 +121,6 @@ class _TodayPageState extends State<TodayPage> {
             return 1;
           }
         }
-        // Samme type: forsok sortOrder, ellers navn
         try {
           final ao = a.sortOrder;
           final bo = b.sortOrder;
@@ -168,6 +204,10 @@ class _TodayPageState extends State<TodayPage> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.backup_outlined),
+            onPressed: () => _showBackupSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
