@@ -19,6 +19,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
   late int _currentYear;
   bool _showYearView = false;
 
+  static const Color _todayBorderColor = Color(0xFFF58B3B);
+
   @override
   void initState() {
     super.initState();
@@ -157,6 +159,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       0,
     ).day;
 
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     final List<Widget> dayCells = [];
 
     const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
@@ -186,6 +191,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(_currentMonth.year, _currentMonth.month, day);
+      final isToday = DateTime(date.year, date.month, date.day) == today;
+
       final color = _colorForDayMonth(
         habit: habit,
         service: service,
@@ -194,6 +201,14 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
       final bool hasActivity =
           color != Colors.transparent && color != Colors.grey.shade900;
+
+      final borderColor = isToday
+          ? _todayBorderColor
+          : hasActivity
+              ? Colors.black.withOpacity(0.2)
+              : Colors.grey.shade800;
+
+      final borderWidth = isToday ? 1.4 : 0.6;
 
       dayCells.add(
         GestureDetector(
@@ -210,10 +225,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
               color: color == Colors.transparent ? Colors.transparent : color,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: hasActivity
-                    ? Colors.black.withOpacity(0.2)
-                    : Colors.grey.shade800,
-                width: 0.6,
+                color: borderColor,
+                width: borderWidth,
               ),
             ),
             child: Center(
@@ -221,6 +234,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                 '$day',
                 style: TextStyle(
                   fontSize: 12,
+                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                   color: color == Colors.greenAccent.shade400
                       ? Colors.black
                       : Colors.white,
@@ -298,6 +312,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     final List<Widget> monthTiles = [];
     final theme = Theme.of(context);
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     for (int month = 1; month <= 12; month++) {
       final int daysInMonth = DateTime(_currentYear, month + 1, 0).day;
@@ -308,6 +323,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
       for (int day = 1; day <= daysInMonth; day++) {
         final d = DateTime(_currentYear, month, day);
+        final normalized = DateTime(d.year, d.month, d.day);
+        final isToday = normalized == today;
+
         final color = _colorForDayYear(
           habit: habit,
           service: service,
@@ -316,12 +334,18 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
         dots.add(
           Container(
-            width: 10,
-            height: 10,
+            width: 12,
+            height: 12,
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(3),
+              borderRadius: BorderRadius.circular(4),
+              border: isToday
+                  ? Border.all(
+                      color: _todayBorderColor,
+                      width: 1.5,
+                    )
+                  : null,
             ),
           ),
         );
