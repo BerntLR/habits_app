@@ -26,7 +26,6 @@ dev_dependencies:
 
 flutter_native_splash:
   color: "#F8E1B5"
-  image: assets/splash/karo_splash.png
   android: true
   ios: true
   web: false
@@ -41,7 +40,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/splash/karo_splash.png
     - assets/icons/karo_habits_icon.png
     - assets/splash/bullpeak_emblem.png
+    - assets/splash/habits_intro.png
+    - assets/backgrounds/app_bg.png
 

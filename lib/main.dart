@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'models/habit.dart';
 import 'services/habit_service.dart';
-import 'pages/bullpeak_intro_page.dart';
 import 'pages/today_page.dart';
 import 'pages/habits_page.dart';
 import 'pages/stats_page.dart';
@@ -22,11 +22,87 @@ class HabitsApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: "Karo's Habits",
         theme: _buildKaroTheme(),
-        initialRoute: '/',
-        routes: {
-          '/': (_) => const BullpeakIntroPage(),
-          '/home': (_) => const HomeShell(),
-        },
+        home: const IntroFlowPage(),
+      ),
+    );
+  }
+}
+
+class IntroFlowPage extends StatefulWidget {
+  const IntroFlowPage({super.key});
+
+  @override
+  State<IntroFlowPage> createState() => _IntroFlowPageState();
+}
+
+class _IntroFlowPageState extends State<IntroFlowPage>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  int _step = 0;
+  final List<String> _introImages = [
+    'assets/splash/bullpeak_emblem.png',
+    'assets/splash/habits_intro.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation =
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _playSequence();
+    });
+  }
+
+  Future<void> _playSequence() async {
+    for (int i = 0; i < _introImages.length; i++) {
+      setState(() {
+        _step = i;
+      });
+
+      // Fade IN
+      await _fadeController.forward();
+      // Stay visible 2 seconds
+      await Future.delayed(const Duration(seconds: 2));
+      // Fade OUT
+      await _fadeController.reverse();
+    }
+
+    // Move to home
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeShell()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8E1B5),
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Image.asset(
+            _introImages[_step],
+            width: MediaQuery.of(context).size.width * 0.85,
+            fit: BoxFit.contain,
+          ),
+        ),
       ),
     );
   }
