@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
+import 'archived_habits_page.dart';
 import 'habit_stats_page.dart';
 
 class HabitsPage extends StatefulWidget {
@@ -22,6 +23,19 @@ class _HabitsPageState extends State<HabitsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vaner'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.archive_outlined),
+            tooltip: 'Arkiverte vaner',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ArchivedHabitsPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: activeHabits.isEmpty
           ? const Center(
@@ -185,7 +199,7 @@ class _HabitsPageState extends State<HabitsPage> {
                           items: const [
                             DropdownMenuItem(
                               value: HabitType.boolean,
-                              child: Text('Boolean (av/på)'),
+                              child: Text('Boolean (av/pa)'),
                             ),
                             DropdownMenuItem(
                               value: HabitType.count,
