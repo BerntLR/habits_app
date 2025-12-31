@@ -1,47 +1,46 @@
 name: habits_app
-description: "A new Flutter project."
-publish_to: 'none'
+description: A new Flutter project.
+
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.1
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  provider: ^6.1.5+1
-  shared_preferences: ^2.5.3
-  file_picker: ^10.3.7
-  share_plus: ^12.0.1
-  path_provider: ^2.1.5
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+  provider: ^6.0.5
+  shared_preferences: ^2.2.3
+  file_picker: ^6.1.1
+  share_plus: ^7.2.0
+  flutter_native_splash: ^2.4.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  flutter_native_splash: ^2.4.0
-  flutter_launcher_icons: ^0.14.1
-
-flutter_native_splash:
-  color: "#F8E1B5"
-  android: true
-  ios: true
-  web: false
-
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/icons/karo_habits_icon.png"
-  min_sdk_android: 21
+  flutter_lints: ^3.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:
-    - assets/icons/karo_habits_icon.png
-    - assets/splash/bullpeak_emblem.png
-    - assets/splash/habits_intro.png
-    - assets/backgrounds/app_bg.png
+    - assets/splash/
+    - assets/icons/
+    - assets/backgrounds/
+
+flutter_native_splash:
+  color: "#F8E1B5"
+  image: assets/splash/splash.png
+  android: true
+  ios: true
+  android_12:
+    color: "#F8E1B5"
+    image: assets/splash/splash.png
 

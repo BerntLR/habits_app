@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 import 'archived_habits_page.dart';
@@ -19,14 +20,15 @@ class _HabitsPageState extends State<HabitsPage> {
     final service = context.watch<HabitService>();
     final allHabits = service.habits;
     final activeHabits = allHabits.where((h) => !h.isArchived).toList();
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vaner'),
+        title: Text(l.habitsTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.archive_outlined),
-            tooltip: 'Arkiverte vaner',
+            tooltip: l.habitsArchiveButtonTooltip,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -38,11 +40,11 @@ class _HabitsPageState extends State<HabitsPage> {
         ],
       ),
       body: activeHabits.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Ingen vaner enda.\nTrykk pa + for a legge til.',
+                  l.habitsEmptyText,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -55,17 +57,21 @@ class _HabitsPageState extends State<HabitsPage> {
               },
               itemBuilder: (context, index) {
                 final habit = activeHabits[index];
-                return _buildHabitTile(context, habit);
+                return _buildHabitTile(context, habit, l);
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddHabitSheet(context),
+        onPressed: () => _showAddHabitSheet(context, l),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildHabitTile(BuildContext context, Habit habit) {
+  Widget _buildHabitTile(
+    BuildContext context,
+    Habit habit,
+    AppLocalizations l,
+  ) {
     return Dismissible(
       key: ValueKey(habit.id),
       direction: DismissDirection.endToStart,
@@ -82,18 +88,18 @@ class _HabitsPageState extends State<HabitsPage> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Arkiver vane'),
+            title: Text(l.archiveHabitTitle),
             content: Text(
-              'Vil du arkivere "${habit.name}"?\nDu mister den fra lister, men historikken beholdes.',
+              l.archiveHabitMessage(habit.name),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Avbryt'),
+                child: Text(l.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Arkiver'),
+                child: Text(l.archive),
               ),
             ],
           ),
@@ -103,7 +109,7 @@ class _HabitsPageState extends State<HabitsPage> {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Vane arkivert: ${habit.name}'),
+                content: Text('${l.archive}: ${habit.name}'),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -121,33 +127,36 @@ class _HabitsPageState extends State<HabitsPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        subtitle: _buildHabitSubtitle(habit),
+        subtitle: _buildHabitSubtitle(habit, l),
         leading: const Icon(Icons.drag_handle),
         trailing: IconButton(
           icon: const Icon(Icons.edit),
-          tooltip: 'Rediger',
-          onPressed: () => _showEditHabitSheet(context, habit),
+          tooltip: l.editHabitTitle,
+          onPressed: () => _showEditHabitSheet(context, habit, l),
         ),
-        onTap: () => _showEditHabitSheet(context, habit),
+        onTap: () => _showEditHabitSheet(context, habit, l),
       ),
     );
   }
 
-  Widget _buildHabitSubtitle(Habit habit) {
+  Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
     if (habit.type == HabitType.boolean) {
-      return const Text(
-        'Boolean-vane',
-        style: TextStyle(fontSize: 12),
+      return Text(
+        l.booleanHabitSubtitle,
+        style: const TextStyle(fontSize: 12),
       );
     } else {
       return Text(
-        'Mal: ${habit.targetValue} per dag',
+        l.countHabitSubtitle(habit.targetValue),
         style: const TextStyle(fontSize: 12),
       );
     }
   }
 
-  Future<void> _showAddHabitSheet(BuildContext context) async {
+  Future<void> _showAddHabitSheet(
+    BuildContext context,
+    AppLocalizations l,
+  ) async {
     final nameController = TextEditingController();
     final targetController = TextEditingController(text: '1');
     final targetFocusNode = FocusNode();
@@ -171,9 +180,9 @@ class _HabitsPageState extends State<HabitsPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Ny vane',
-                    style: TextStyle(
+                  Text(
+                    l.newHabitTitle,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -181,9 +190,9 @@ class _HabitsPageState extends State<HabitsPage> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Navn',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l.fieldNameLabel,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -192,18 +201,18 @@ class _HabitsPageState extends State<HabitsPage> {
                       Expanded(
                         child: DropdownButtonFormField<HabitType>(
                           value: selectedType,
-                          decoration: const InputDecoration(
-                            labelText: 'Type',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: l.fieldTypeLabel,
+                            border: const OutlineInputBorder(),
                           ),
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: HabitType.boolean,
-                              child: Text('Boolean (av/pa)'),
+                              child: Text(l.habitTypeBoolean),
                             ),
                             DropdownMenuItem(
                               value: HabitType.count,
-                              child: Text('Telle-vane'),
+                              child: Text(l.habitTypeCount),
                             ),
                           ],
                           onChanged: (value) {
@@ -212,13 +221,15 @@ class _HabitsPageState extends State<HabitsPage> {
                               selectedType = value;
                             });
                             if (value == HabitType.count) {
-                              Future.delayed(const Duration(milliseconds: 80),
-                                  () {
-                                if (targetFocusNode.canRequestFocus) {
-                                  FocusScope.of(ctx)
-                                      .requestFocus(targetFocusNode);
-                                }
-                              });
+                              Future.delayed(
+                                const Duration(milliseconds: 80),
+                                () {
+                                  if (targetFocusNode.canRequestFocus) {
+                                    FocusScope.of(ctx)
+                                        .requestFocus(targetFocusNode);
+                                  }
+                                },
+                              );
                             } else {
                               FocusScope.of(ctx).unfocus();
                             }
@@ -232,9 +243,9 @@ class _HabitsPageState extends State<HabitsPage> {
                           focusNode: targetFocusNode,
                           enabled: selectedType == HabitType.count,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Mal per dag',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText: l.targetPerDayLabel,
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
@@ -246,7 +257,7 @@ class _HabitsPageState extends State<HabitsPage> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('Avbryt'),
+                        child: Text(l.cancel),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
@@ -254,8 +265,8 @@ class _HabitsPageState extends State<HabitsPage> {
                           final name = nameController.text.trim();
                           if (name.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Vane trenger et navn.'),
+                              SnackBar(
+                                content: Text(l.habitNeedsName),
                               ),
                             );
                             return;
@@ -278,7 +289,7 @@ class _HabitsPageState extends State<HabitsPage> {
                             Navigator.of(ctx).pop();
                           }
                         },
-                        child: const Text('Lagre'),
+                        child: Text(l.save),
                       ),
                     ],
                   ),
@@ -295,6 +306,7 @@ class _HabitsPageState extends State<HabitsPage> {
   Future<void> _showEditHabitSheet(
     BuildContext context,
     Habit habit,
+    AppLocalizations l,
   ) async {
     final nameController = TextEditingController(text: habit.name);
     final targetController = TextEditingController(
@@ -317,9 +329,9 @@ class _HabitsPageState extends State<HabitsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Rediger vane',
-                style: TextStyle(
+              Text(
+                l.editHabitTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -327,9 +339,9 @@ class _HabitsPageState extends State<HabitsPage> {
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Navn',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l.fieldNameLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -337,9 +349,9 @@ class _HabitsPageState extends State<HabitsPage> {
                 TextField(
                   controller: targetController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Mal per dag',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l.targetPerDayLabel,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               const SizedBox(height: 12),
@@ -347,7 +359,7 @@ class _HabitsPageState extends State<HabitsPage> {
                 children: [
                   TextButton.icon(
                     icon: const Icon(Icons.bar_chart),
-                    label: const Text('Se statistikk'),
+                    label: Text(l.buttonSeeStats),
                     onPressed: () {
                       Navigator.of(ctx).pop();
                       Navigator.of(context).push(
@@ -363,18 +375,18 @@ class _HabitsPageState extends State<HabitsPage> {
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (dCtx) => AlertDialog(
-                          title: const Text('Slett vane'),
+                          title: Text(l.deleteHabitTitle),
                           content: Text(
-                            'Er du sikker pa at du vil slette "${habit.name}"?\nHistorikk slettes ogsa.',
+                            l.deleteHabitMessage(habit.name),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(false),
-                              child: const Text('Avbryt'),
+                              child: Text(l.cancel),
                             ),
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(true),
-                              child: const Text('Slett'),
+                              child: Text(l.delete),
                             ),
                           ],
                         ),
@@ -388,9 +400,9 @@ class _HabitsPageState extends State<HabitsPage> {
                         }
                       }
                     },
-                    child: const Text(
-                      'Slett',
-                      style: TextStyle(color: Colors.redAccent),
+                    child: Text(
+                      l.delete,
+                      style: const TextStyle(color: Colors.redAccent),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -403,7 +415,7 @@ class _HabitsPageState extends State<HabitsPage> {
                         Navigator.of(ctx).pop();
                       }
                     },
-                    child: const Text('Arkiver'),
+                    child: Text(l.buttonArchive),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
@@ -428,7 +440,7 @@ class _HabitsPageState extends State<HabitsPage> {
                         Navigator.of(ctx).pop();
                       }
                     },
-                    child: const Text('Lagre'),
+                    child: Text(l.save),
                   ),
                 ],
               ),
@@ -440,3 +452,4 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 }
+

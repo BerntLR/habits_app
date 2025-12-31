@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 import 'today_page.dart';
@@ -46,22 +48,22 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
     });
   }
 
-  String _monthName(int month) {
-    const names = <String>[
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    return names[month - 1];
+  String _monthLabel(BuildContext context, int year, int month) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dt = DateTime(year, month, 1);
+    return DateFormat('MMM yyyy', locale).format(dt);
+  }
+
+  List<String> _weekdayLabels(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final monday = DateTime(2020, 1, 6); // Monday
+    final labels = <String>[];
+    for (int i = 0; i < 7; i++) {
+      final d = monday.add(Duration(days: i));
+      final s = DateFormat('E', locale).format(d);
+      labels.add(s.isEmpty ? '' : s.characters.first.toUpperCase());
+    }
+    return labels;
   }
 
   Color _colorForDayMonth({
@@ -118,6 +120,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final habit = widget.habit;
     final service = context.watch<HabitService>();
 
@@ -127,10 +130,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           title: Text(habit.name),
           actions: [
             IconButton(
-              icon: Icon(
-                _showYearView ? Icons.view_module : Icons.view_list,
-              ),
-              tooltip: _showYearView ? 'Vis ar' : 'Vis maned',
+              icon: Icon(_showYearView ? Icons.view_module : Icons.view_list),
+              tooltip:
+                  _showYearView ? l.habitStatsShowMonth : l.habitStatsShowYear,
               onPressed: () {
                 setState(() {
                   _showYearView = !_showYearView;
@@ -140,14 +142,15 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           ],
         ),
         body: _showYearView
-            ? _buildYearView(context, habit, service)
-            : _buildMonthView(context, habit, service),
+            ? _buildYearView(context, l, habit, service)
+            : _buildMonthView(context, l, habit, service),
       ),
     );
   }
 
   Widget _buildMonthView(
     BuildContext context,
+    AppLocalizations l,
     Habit habit,
     HabitService service,
   ) {
@@ -164,9 +167,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
     final List<Widget> dayCells = [];
 
-    const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+    final weekdayLabels = _weekdayLabels(context);
 
-    // Ukedags-header med mørk tekst for bedre lesbarhet
     dayCells.addAll(
       weekdayLabels
           .map(
@@ -265,16 +267,16 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      '${_monthName(_currentMonth.month)} ${_currentMonth.year}',
+                      _monthLabel(context, _currentMonth.year, _currentMonth.month),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.black87,
                           ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Trykk pa en dag for a apne den',
-                      style: TextStyle(
+                    Text(
+                      l.habitStatsTapDay,
+                      style: const TextStyle(
                         fontSize: 11,
                         color: Colors.black54,
                       ),
@@ -306,6 +308,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
 
   Widget _buildYearView(
     BuildContext context,
+    AppLocalizations l,
     Habit habit,
     HabitService service,
   ) {
@@ -358,6 +361,9 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           ? theme.colorScheme.secondary
           : Colors.black.withOpacity(0.08);
 
+      final locale = Localizations.localeOf(context).toLanguageTag();
+      final monthName = DateFormat('MMM', locale).format(DateTime(2020, month, 1));
+
       monthTiles.add(
         Card(
           margin: const EdgeInsets.all(4),
@@ -374,7 +380,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
             child: Column(
               children: [
                 Text(
-                  _monthName(month),
+                  monthName,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -424,7 +430,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                 Expanded(
                   child: Center(
                     child: Text(
-                      'Ar $_currentYear',
+                      l.habitStatsYearTitle(_currentYear),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.black87,
                           ),
@@ -458,6 +464,7 @@ class StatusLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final noneColor = Colors.grey.shade900;
     final partialColor = Colors.amberAccent.withOpacity(0.6);
     final fullColor = Colors.greenAccent.shade400;
@@ -482,18 +489,9 @@ class StatusLegend extends StatelessWidget {
           spacing: 16,
           runSpacing: 8,
           children: [
-            LegendItem(
-              color: noneColor,
-              label: 'Ingen',
-            ),
-            LegendItem(
-              color: partialColor,
-              label: 'Delvis',
-            ),
-            LegendItem(
-              color: fullColor,
-              label: 'Fullfort',
-            ),
+            LegendItem(color: noneColor, label: l.legendNone),
+            LegendItem(color: partialColor, label: l.legendPartial),
+            LegendItem(color: fullColor, label: l.legendFull),
           ],
         ),
       ),

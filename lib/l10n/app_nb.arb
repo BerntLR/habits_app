@@ -1,0 +1,86 @@
+{
+  "tabToday": "I dag",
+  "tabHabits": "Vaner",
+  "tabStats": "Statistikk",
+
+  "habitsTitle": "Vaner",
+  "habitsArchiveButtonTooltip": "Arkiv",
+  "habitsEmptyText": "Ingen vaner enda. Trykk + for å legge til.",
+
+  "newHabitTitle": "Ny vane",
+  "editHabitTitle": "Rediger vane",
+
+  "fieldNameLabel": "Navn",
+  "fieldTypeLabel": "Type",
+  "targetPerDayLabel": "Mål per dag",
+
+  "habitTypeBoolean": "Ja/nei",
+  "habitTypeCount": "Telle",
+
+  "booleanHabitSubtitle": "Fullfør en gang per dag",
+  "countHabitSubtitle": "{target} per dag",
+  "@countHabitSubtitle": {
+    "placeholders": {
+      "target": { "type": "int" }
+    }
+  },
+
+  "habitNeedsName": "Skriv inn et navn.",
+
+  "cancel": "Avbryt",
+  "save": "Lagre",
+
+  "archive": "Arkiver",
+  "buttonArchive": "Arkiver",
+  "archiveHabitTitle": "Arkiver vane",
+  "archiveHabitMessage": "Vil du arkivere \"{name}\"?",
+  "@archiveHabitMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "delete": "Slett",
+  "deleteHabitTitle": "Slett vane",
+  "deleteHabitMessage": "Vil du slette \"{name}\"?",
+  "@deleteHabitMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "buttonSeeStats": "Se statistikk",
+
+  "statsTitle": "Statistikk",
+  "statsNoHabits": "Ingen vaner enda. Legg til vaner under \"Vaner\".",
+  "statsLast7Days": "Denne uken (siste 7 dager)",
+  "statsAverage": "{percent}% gjennomsnittlig progresjon",
+  "@statsAverage": {
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+  "statsActiveHabits": "{count} aktive vaner",
+  "@statsActiveHabits": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "statsDaysTitle": "Dager siste 7 dager",
+  "statsBestHabits": "Beste vaner denne uken",
+
+  "habitStatsShowMonth": "Vis måned",
+  "habitStatsShowYear": "Vis år",
+  "habitStatsTapDay": "Trykk på en dag for å åpne den",
+  "habitStatsYearTitle": "År {year}",
+  "@habitStatsYearTitle": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+
+  "legendNone": "Ingen",
+  "legendPartial": "Delvis",
+  "legendFull": "Fullført"
+}
+

@@ -25,6 +25,11 @@ class _TodayPageState extends State<TodayPage> {
     _currentDate = _normalizeDate(widget.initialDate ?? now);
   }
 
+  bool _isEnglish(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    return locale.languageCode.toLowerCase().startsWith('en');
+  }
+
   DateTime _normalizeDate(DateTime dt) {
     return DateTime(dt.year, dt.month, dt.day);
   }
@@ -33,7 +38,6 @@ class _TodayPageState extends State<TodayPage> {
     final newDate = _currentDate.add(Duration(days: delta));
     final today = _normalizeDate(DateTime.now());
 
-    // Ikke ga inn i fremtiden
     if (newDate.isAfter(today)) return;
 
     setState(() {
@@ -41,16 +45,17 @@ class _TodayPageState extends State<TodayPage> {
     });
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final today = _normalizeDate(DateTime.now());
     final yesterday = today.subtract(const Duration(days: 1));
     final tomorrow = today.add(const Duration(days: 1));
+    final isEn = _isEnglish(context);
 
-    if (date == today) return 'I dag';
-    if (date == yesterday) return 'I gar';
-    if (date == tomorrow) return 'I morgen';
+    if (date == today) return isEn ? 'Today' : 'I dag';
+    if (date == yesterday) return isEn ? 'Yesterday' : 'I gar';
+    if (date == tomorrow) return isEn ? 'Tomorrow' : 'I morgen';
 
-    const months = [
+    const monthsNo = [
       'januar',
       'februar',
       'mars',
@@ -65,10 +70,32 @@ class _TodayPageState extends State<TodayPage> {
       'desember',
     ];
 
-    return '${date.day}. ${months[date.month - 1]} ${date.year}';
+    const monthsEn = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final list = isEn ? monthsEn : monthsNo;
+    if (isEn) {
+      return '${list[date.month - 1]} ${date.day}, ${date.year}';
+    } else {
+      return '${date.day}. ${list[date.month - 1]} ${date.year}';
+    }
   }
 
   Future<void> _showBackupSheet(BuildContext context) async {
+    final isEn = _isEnglish(context);
+
     await showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -79,8 +106,12 @@ class _TodayPageState extends State<TodayPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.cloud_upload_outlined),
-                title: const Text('Eksporter backup'),
-                subtitle: const Text('Lagre vaner og historikk til fil'),
+                title: Text(isEn ? 'Export backup' : 'Eksporter backup'),
+                subtitle: Text(
+                  isEn
+                      ? 'Save habits and history to file'
+                      : 'Lagre vaner og historikk til fil',
+                ),
                 onTap: () async {
                   Navigator.of(ctx).pop();
                   await _backupService.exportBackup(context);
@@ -88,8 +119,12 @@ class _TodayPageState extends State<TodayPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.cloud_download_outlined),
-                title: const Text('Importer backup'),
-                subtitle: const Text('Gjenopprett fra tidligere fil'),
+                title: Text(isEn ? 'Import backup' : 'Importer backup'),
+                subtitle: Text(
+                  isEn
+                      ? 'Restore from existing file'
+                      : 'Gjenopprett fra tidligere fil',
+                ),
                 onTap: () async {
                   Navigator.of(ctx).pop();
                   await _backupService.importBackup(context);
@@ -107,11 +142,8 @@ class _TodayPageState extends State<TodayPage> {
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
     final rawHabits = habitService.habitsForDate(_currentDate);
+    final isEn = _isEnglish(context);
 
-    // Sortering for Today:
-    // 1) Boolean-vaner først
-    // 2) Telle-vaner etterpå
-    // 3) Innenfor samme type: sortOrder, fall-back pa navn
     final habits = [...rawHabits]..sort((a, b) {
         if (a.type != b.type) {
           if (a.type == HabitType.boolean && b.type == HabitType.count) {
@@ -127,11 +159,13 @@ class _TodayPageState extends State<TodayPage> {
           if (ao != bo) {
             return ao.compareTo(bo);
           }
-        } catch (_) {
-          // Hvis sortOrder ikke finnes, ignorer
-        }
+        } catch (_) {}
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
+
+    final emptyText = isEn
+        ? 'No habits for this day.\nAdd habits on the Habits tab.'
+        : 'Ingen vaner for denne dagen.\nLegg til vaner pa Vaner-fanen.';
 
     return SafeArea(
       child: Column(
@@ -144,11 +178,11 @@ class _TodayPageState extends State<TodayPage> {
           if (habits.isNotEmpty) const SizedBox(height: 4),
           Expanded(
             child: habits.isEmpty
-                ? const Center(
+                ? Center(
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Text(
-                        'Ingen vaner for denne dagen.\nLegg til vaner pa Vaner-fanen.',
+                        emptyText,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -174,6 +208,15 @@ class _TodayPageState extends State<TodayPage> {
   Widget _buildDateHeader(BuildContext context) {
     final today = _normalizeDate(DateTime.now());
     final isToday = _currentDate == today;
+    final isEn = _isEnglish(context);
+
+    final subtitle = isToday
+        ? (isEn ? 'Your habits today' : 'Dine vaner i dag')
+        : (isEn ? 'Habits for selected date' : 'Vaner for valgt dato');
+
+    final backupTooltip = isEn
+        ? 'Export/import backup'
+        : 'Eksporter/importer backup';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -187,7 +230,7 @@ class _TodayPageState extends State<TodayPage> {
             child: Column(
               children: [
                 Text(
-                  _formatDate(_currentDate),
+                  _formatDate(context, _currentDate),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 18,
@@ -196,7 +239,7 @@ class _TodayPageState extends State<TodayPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isToday ? 'Dine vaner i dag' : 'Vaner for valgt dato',
+                  subtitle,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -206,7 +249,7 @@ class _TodayPageState extends State<TodayPage> {
             ),
           ),
           Tooltip(
-            message: 'Eksporter/importer backup',
+            message: backupTooltip,
             child: IconButton(
               icon: const Icon(Icons.backup_outlined),
               onPressed: () => _showBackupSheet(context),
@@ -234,6 +277,15 @@ class _TodayPageState extends State<TodayPage> {
       }
     }
     final progress = total == 0 ? 0.0 : doneCount / total;
+    final isEn = _isEnglish(context);
+
+    final summaryText = isEn
+        ? 'Completed $doneCount of $total habits'
+        : 'Fullfort $doneCount av $total vaner';
+
+    final tipText = isEn
+        ? 'Tip: Tap a habit to mark it as done. For count habits, use + and -.'
+        : 'Tips: Trykk pa en vane for a markere den som gjort. For telle-vaner kan du bruke + og -.';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -241,7 +293,7 @@ class _TodayPageState extends State<TodayPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Fullfort $doneCount av $total vaner',
+            summaryText,
             style: TextStyle(
               fontSize: 13,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -257,7 +309,7 @@ class _TodayPageState extends State<TodayPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Tips: Trykk pa en vane for a markere den som gjort. For telle-vaner kan du bruke + og -.',
+            tipText,
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -277,6 +329,11 @@ class _TodayHabitTile extends StatelessWidget {
     required this.habit,
     required this.date,
   });
+
+  bool _isEnglish(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    return locale.languageCode.toLowerCase().startsWith('en');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -319,7 +376,6 @@ class _TodayHabitTile extends StatelessWidget {
     if (habit.type == HabitType.boolean) {
       service.toggleHabit(habit.id, date);
     } else {
-      // For telle-vaner: tap pa raden oker antall med 1
       service.incrementCount(habit.id, date);
     }
   }
@@ -392,16 +448,22 @@ class _TodayHabitTile extends StatelessWidget {
     HabitService service,
     int count,
   ) {
+    final isEn = _isEnglish(context);
+
+    final resetTooltip =
+        isEn ? 'Reset this day' : 'Nullstill denne dagen';
+    final incTooltip =
+        isEn ? 'Increase by 1' : 'Ok antallet med 1';
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           icon: const Icon(Icons.remove),
           splashRadius: 20,
-          tooltip: 'Nullstill denne dagen',
+          tooltip: resetTooltip,
           onPressed: count > 0
               ? () {
-                  // Reset til 0 ved denne datoen
                   service.resetForDate(habit.id, date);
                 }
               : null,
@@ -409,7 +471,7 @@ class _TodayHabitTile extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add),
           splashRadius: 20,
-          tooltip: 'Ok antallet med 1',
+          tooltip: incTooltip,
           onPressed: () {
             service.incrementCount(habit.id, date);
           },
@@ -502,3 +564,4 @@ class _StreakChipState extends State<_StreakChip> {
     return Colors.greenAccent.shade400;
   }
 }
+

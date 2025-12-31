@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'models/habit.dart';
+import 'l10n/app_localizations.dart';
 import 'services/habit_service.dart';
 import 'pages/today_page.dart';
 import 'pages/habits_page.dart';
@@ -22,6 +25,13 @@ class HabitsApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: "Karo's Habits",
         theme: _buildKaroTheme(),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const IntroFlowPage(),
       ),
     );
@@ -37,22 +47,36 @@ class IntroFlowPage extends StatefulWidget {
 
 class _IntroFlowPageState extends State<IntroFlowPage>
     with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
+
+  late final String _randomComic;
 
   int _step = 0;
-  final List<String> _introImages = [
-    'assets/splash/bullpeak_emblem.png',
-    'assets/splash/habits_intro.png',
+
+  final List<String> _comics = const [
+    'assets/splash/tegneserie_1.png',
+    'assets/splash/tegneserie_2.png',
+    'assets/splash/tegneserie_3.png',
   ];
+
+  late final List<String> _sequence;
 
   @override
   void initState() {
     super.initState();
 
+    _randomComic = _comics[Random().nextInt(_comics.length)];
+
+    _sequence = [
+
+      'assets/splash/emblem_mobil.png', // emblem
+      _randomComic,                        // ÉN tilfeldig stripe
+    ];
+
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 300),
     );
 
     _fadeAnimation =
@@ -64,20 +88,16 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   }
 
   Future<void> _playSequence() async {
-    for (int i = 0; i < _introImages.length; i++) {
-      setState(() {
-        _step = i;
-      });
+    for (int i = 0; i < _sequence.length; i++) {
+      setState(() => _step = i);
 
-      // Fade IN
       await _fadeController.forward();
-      // Stay visible 2 seconds
-      await Future.delayed(const Duration(seconds: 2));
-      // Fade OUT
+      await Future.delayed(
+        Duration(milliseconds: i == 2 ? 3500 : 1500),
+      );
       await _fadeController.reverse();
     }
 
-    // Move to home
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeShell()),
@@ -98,8 +118,8 @@ class _IntroFlowPageState extends State<IntroFlowPage>
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Image.asset(
-            _introImages[_step],
-            width: MediaQuery.of(context).size.width * 0.85,
+            _sequence[_step],
+            width: MediaQuery.of(context).size.width * 0.9,
             fit: BoxFit.contain,
           ),
         ),
@@ -133,76 +153,11 @@ ThemeData _buildKaroTheme() {
     appBarTheme: const AppBarTheme(
       backgroundColor: primary,
       foregroundColor: Colors.white,
-      elevation: 2,
       centerTitle: true,
-      titleTextStyle: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: Colors.white,
-      ),
     ),
     textTheme: base.textTheme.apply(
       bodyColor: darkText,
       displayColor: darkText,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: accent,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 2,
-      ),
-    ),
-    cardTheme: CardThemeData(
-      color: Colors.white,
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: primary.withOpacity(0.08),
-          width: 1,
-        ),
-      ),
-    ),
-    chipTheme: base.chipTheme.copyWith(
-      backgroundColor: Colors.white,
-      selectedColor: accent.withOpacity(0.15),
-      labelStyle: const TextStyle(
-        color: darkText,
-        fontWeight: FontWeight.w500,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: primary.withOpacity(0.1),
-        ),
-      ),
-    ),
-    checkboxTheme: CheckboxThemeData(
-      fillColor: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
-          return accent;
-        }
-        return primary.withOpacity(0.4);
-      }),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
-    ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: krem,
-      indicatorColor: accent.withOpacity(0.2),
-      labelTextStyle: MaterialStateProperty.all(
-        const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: darkText,
-        ),
-      ),
     ),
   );
 }
@@ -225,30 +180,30 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.today_outlined),
             selectedIcon: Icon(Icons.today),
-            label: 'I dag',
+            label: l.tabToday,
           ),
           NavigationDestination(
             icon: Icon(Icons.list_alt_outlined),
             selectedIcon: Icon(Icons.list_alt),
-            label: 'Vaner',
+            label: l.tabHabits,
           ),
           NavigationDestination(
             icon: Icon(Icons.insights_outlined),
             selectedIcon: Icon(Icons.insights),
-            label: 'Statistikk',
+            label: l.tabStats,
           ),
         ],
       ),

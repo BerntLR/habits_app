@@ -1,0 +1,86 @@
+{
+  "tabToday": "Today",
+  "tabHabits": "Habits",
+  "tabStats": "Stats",
+
+  "habitsTitle": "Habits",
+  "habitsArchiveButtonTooltip": "Archive",
+  "habitsEmptyText": "No habits yet. Tap + to add one.",
+
+  "newHabitTitle": "New habit",
+  "editHabitTitle": "Edit habit",
+
+  "fieldNameLabel": "Name",
+  "fieldTypeLabel": "Type",
+  "targetPerDayLabel": "Target per day",
+
+  "habitTypeBoolean": "Yes/No",
+  "habitTypeCount": "Count",
+
+  "booleanHabitSubtitle": "Complete once per day",
+  "countHabitSubtitle": "{target} per day",
+  "@countHabitSubtitle": {
+    "placeholders": {
+      "target": { "type": "int" }
+    }
+  },
+
+  "habitNeedsName": "Please enter a name.",
+
+  "cancel": "Cancel",
+  "save": "Save",
+
+  "archive": "Archive",
+  "buttonArchive": "Archive",
+  "archiveHabitTitle": "Archive habit",
+  "archiveHabitMessage": "Do you want to archive \"{name}\"?",
+  "@archiveHabitMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "delete": "Delete",
+  "deleteHabitTitle": "Delete habit",
+  "deleteHabitMessage": "Do you want to delete \"{name}\"?",
+  "@deleteHabitMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "buttonSeeStats": "See stats",
+
+  "statsTitle": "Statistics",
+  "statsNoHabits": "No habits yet. Add habits under \"Habits\".",
+  "statsLast7Days": "This week (last 7 days)",
+  "statsAverage": "{percent}% average progress",
+  "@statsAverage": {
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+  "statsActiveHabits": "{count} active habits",
+  "@statsActiveHabits": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "statsDaysTitle": "Days last 7 days",
+  "statsBestHabits": "Best habits this week",
+
+  "habitStatsShowMonth": "Show month",
+  "habitStatsShowYear": "Show year",
+  "habitStatsTapDay": "Tap a day to open it",
+  "habitStatsYearTitle": "Year {year}",
+  "@habitStatsYearTitle": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+
+  "legendNone": "None",
+  "legendPartial": "Partial",
+  "legendFull": "Completed"
+}
+
