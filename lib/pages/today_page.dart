@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import '../bullpeak/widgets/bp_swipe_actions.dart';
+import '../bullpeak/widgets/bp_list_tile.dart';
 import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 import '../services/backup_service.dart';
-
+import '../bullpeak/widgets/bp_empty_state.dart';
+import 'habits_page.dart';
+import '../main.dart';
+import '../bullpeak/widgets/bp_section_header.dart';
+import '../bullpeak/tokens.dart';
+import '../bullpeak/widgets/bp_card.dart';
 class TodayPage extends StatefulWidget {
   final DateTime? initialDate;
 
@@ -178,14 +185,18 @@ class _TodayPageState extends State<TodayPage> {
           if (habits.isNotEmpty) const SizedBox(height: 4),
           Expanded(
             child: habits.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        emptyText,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                ? BPEmptyState(
+                    title: isEn ? 'No habits today' : 'Ingen vaner i dag',
+                    message: isEn
+                        ? 'Add habits on the Habits tab.'
+                        : 'Legg til vaner pa Vaner-fanen.',
+                    icon: Icons.checklist_outlined,
+                    actionLabel: isEn ? 'Add habit' : 'Legg til vane',
+                    onAction: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const HabitsPage()),
+                      );
+                    },
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
@@ -214,53 +225,47 @@ class _TodayPageState extends State<TodayPage> {
         ? (isEn ? 'Your habits today' : 'Dine vaner i dag')
         : (isEn ? 'Habits for selected date' : 'Vaner for valgt dato');
 
-    final backupTooltip = isEn
-        ? 'Export/import backup'
-        : 'Eksporter/importer backup';
+    final backupTooltip =
+        isEn ? 'Export/import backup' : 'Eksporter/importer backup';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: () => _changeDay(-1),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  _formatDate(context, _currentDate),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BPSectionHeader(
+          _formatDate(context, _currentDate),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: isEn ? 'Previous day' : 'Forrige dag',
+                icon: const Icon(Icons.chevron_left),
+                onPressed: () => _changeDay(-1),
+              ),
+              Tooltip(
+                message: backupTooltip,
+                child: IconButton(
+                  icon: const Icon(Icons.backup_outlined),
+                  onPressed: () => _showBackupSheet(context),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                tooltip: isEn ? 'Next day' : 'Neste dag',
+                icon: const Icon(Icons.chevron_right),
+                onPressed: isToday ? null : () => _changeDay(1),
+              ),
+            ],
           ),
-          Tooltip(
-            message: backupTooltip,
-            child: IconButton(
-              icon: const Icon(Icons.backup_outlined),
-              onPressed: () => _showBackupSheet(context),
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              BPSpacing.l, 0, BPSpacing.l, BPSpacing.s),
+          child: Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: isToday ? null : () => _changeDay(1),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -287,17 +292,17 @@ class _TodayPageState extends State<TodayPage> {
         ? 'Tip: Tap a habit to mark it as done. For count habits, use + and -.'
         : 'Tips: Trykk pa en vane for a markere den som gjort. For telle-vaner kan du bruke + og -.';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+    return BPCard(
+      margin: const EdgeInsets.symmetric(horizontal: BPSpacing.l, vertical: 6),
+      padding: const EdgeInsets.all(BPSpacing.l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             summaryText,
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: 4),
           ClipRRect(
@@ -310,10 +315,9 @@ class _TodayPageState extends State<TodayPage> {
           const SizedBox(height: 4),
           Text(
             tipText,
-            style: TextStyle(
-              fontSize: 11,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -342,29 +346,176 @@ class _TodayHabitTile extends StatelessWidget {
     final count = service.countForHabit(habit.id, date);
     final streak = service.streakForHabit(habit.id, date);
 
-    return Card(
-      elevation: 1,
-      child: InkWell(
-        onTap: () {
-          _handleTap(context, service, done);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            children: [
-              _buildLeadingCheckbox(context, done),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildTexts(context, done, count, streak),
+    return BPSwipeActions(
+      onDelete: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          useRootNavigator: true,
+          builder: (dCtx) => AlertDialog(
+            title: const Text('Slett vane'),
+            content: Text('Vil du slette "${habit.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dCtx).pop(false),
+                child: const Text('Avbryt'),
               ),
-              if (habit.type == HabitType.count) ...[
-                const SizedBox(width: 8),
-                _buildCountControls(context, service, count),
-              ],
+              TextButton(
+                onPressed: () => Navigator.of(dCtx).pop(true),
+                child: const Text('Slett'),
+              ),
             ],
           ),
+        );
+
+        if (confirmed == true) {
+          final service = context.read<HabitService>();
+          await service.deleteHabit(habit.id);
+          if (context.mounted) {
+          }
+        }
+      },
+      onEdit: () {
+        _editHabit(context);
+      },
+      child: BPListTile(
+        onTap: () => _handleTap(context, service, done),
+        leading: habit.type == HabitType.boolean
+            ? null
+            : (done ? Icons.check_circle : Icons.radio_button_unchecked),
+        title: habit.name,
+        subtitle: habit.type == HabitType.count
+            ? '$count / ${habit.targetValue}'
+            : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (streak > 0) _StreakChip(streak: streak),
+            if (habit.type == HabitType.count) ...[
+              const SizedBox(width: 4),
+              _buildCountControls(context, service, count),
+            ],
+          ],
         ),
       ),
+    );
+  }
+
+  void _editHabit(BuildContext context) {
+    final nameController = TextEditingController(text: habit.name);
+    final targetController = TextEditingController(
+      text: habit.type == HabitType.count ? '${habit.targetValue}' : '',
+    );
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) {
+        final bottomInsets = MediaQuery.of(ctx).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: bottomInsets,
+            left: 16,
+            right: 16,
+            top: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Rediger vane',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Navn',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (habit.type == HabitType.count)
+                TextField(
+                  controller: targetController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Maal per dag',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              const SizedBox(height: 12),
+
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Avbryt'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: true,
+                        useRootNavigator: true,
+                        builder: (dCtx) => AlertDialog(
+                          title: const Text('Arkiver vane'),
+                          content: Text('Vil du arkivere "${habit.name}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(dCtx).pop(false),
+                              child: const Text('Avbryt'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(dCtx).pop(true),
+                              child: const Text('Arkiver'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        await context.read<HabitService>().archiveHabit(habit.id);
+                        if (context.mounted) {
+                          Navigator.of(ctx).pop();
+                        }
+                      }
+                    },
+                    child: const Text('Arkiver'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final name = nameController.text.trim();
+                      int? target;
+                      if (habit.type == HabitType.count) {
+                        final t = int.tryParse(targetController.text.trim());
+                        if (t != null && t > 0) target = t;
+                      }
+
+                      await context.read<HabitService>().updateHabitBasic(
+                            habit.id,
+                            name: name.isEmpty ? null : name,
+                            targetValue: target,
+                          );
+
+                      if (context.mounted) {
+                        Navigator.of(ctx).pop();
+                      }
+                    },
+                    child: const Text('Lagre'),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -450,10 +601,8 @@ class _TodayHabitTile extends StatelessWidget {
   ) {
     final isEn = _isEnglish(context);
 
-    final resetTooltip =
-        isEn ? 'Reset this day' : 'Nullstill denne dagen';
-    final incTooltip =
-        isEn ? 'Increase by 1' : 'Ok antallet med 1';
+    final resetTooltip = isEn ? 'Reset this day' : 'Nullstill denne dagen';
+    final incTooltip = isEn ? 'Increase by 1' : 'Ok antallet med 1';
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -564,4 +713,3 @@ class _StreakChipState extends State<_StreakChip> {
     return Colors.greenAccent.shade400;
   }
 }
-

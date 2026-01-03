@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import '../bullpeak/widgets/bp_list_tile.dart';
+import '../bullpeak/widgets/bp_card.dart';
+import '../bullpeak/widgets/bp_swipe_actions.dart';
 import 'package:provider/provider.dart';
 
+import '../bullpeak/widgets/bp_button.dart';
+import '../bullpeak/widgets/bp_empty_state.dart';
+import '../bullpeak/widgets/bp_snackbar.dart';
 import '../l10n/app_localizations.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
@@ -15,12 +21,18 @@ class HabitsPage extends StatefulWidget {
 }
 
 class _HabitsPageState extends State<HabitsPage> {
+  bool _isEnglish(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    return locale.languageCode.toLowerCase() == 'en';
+  }
+
   @override
   Widget build(BuildContext context) {
     final service = context.watch<HabitService>();
     final allHabits = service.habits;
     final activeHabits = allHabits.where((h) => !h.isArchived).toList();
     final l = AppLocalizations.of(context)!;
+    final isEn = _isEnglish(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,14 +52,12 @@ class _HabitsPageState extends State<HabitsPage> {
         ],
       ),
       body: activeHabits.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  l.habitsEmptyText,
-                  textAlign: TextAlign.center,
-                ),
-              ),
+          ? BPEmptyState(
+              icon: Icons.list_alt_outlined,
+              title: isEn ? 'No habits yet' : 'Ingen vaner enda',
+              message: l.habitsEmptyText,
+              actionLabel: isEn ? 'Add habit' : 'Legg til vane',
+              onAction: () => _showAddHabitSheet(context, l),
             )
           : ReorderableListView.builder(
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
@@ -57,7 +67,7 @@ class _HabitsPageState extends State<HabitsPage> {
               },
               itemBuilder: (context, index) {
                 final habit = activeHabits[index];
-                return _buildHabitTile(context, habit, l);
+                return _buildHabitTile(context, habit, l, index);
               },
             ),
       floatingActionButton: FloatingActionButton(
@@ -71,86 +81,79 @@ class _HabitsPageState extends State<HabitsPage> {
     BuildContext context,
     Habit habit,
     AppLocalizations l,
+    int index,
   ) {
-    return Dismissible(
-      key: ValueKey(habit.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        color: Colors.orange.shade700,
-        child: const Icon(
-          Icons.archive_outlined,
-          color: Colors.white,
-        ),
-      ),
-      confirmDismiss: (direction) async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l.archiveHabitTitle),
-            content: Text(
-              l.archiveHabitMessage(habit.name),
+    return BPSwipeActions(
+      key: ValueKey('habit_${habit.id}'),
+      dismissKey: ValueKey('habit_${habit.id}'),
+      // BPSwipeActions is locked: LEFT => delete, RIGHT => edit.
+      // Here we use LEFT as "delete" (destructive).
+      onDelete: () {
+        () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            useRootNavigator: true,
+            builder: (ctx) => AlertDialog(
+              title: Text(l.deleteHabitTitle),
+              content: Text(l.deleteHabitMessage(habit.name)),
+              actions: [
+                BPButton(
+                  label: l.cancel,
+                  kind: BPButtonKind.tertiary,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                ),
+                BPButton(
+                  label: l.delete,
+                  kind: BPButtonKind.primary,
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(l.cancel),
+          );
+
+          if (confirmed == true) {
+            
+            await context.read<HabitService>().deleteHabit(habit.id);
+            if (context.mounted) {
+              BPSnackbar.success(context, '${l.delete}: ${habit.name}');
+            }
+          }
+        }();
+      },
+      onEdit: () => _showEditHabitSheet(context, habit, l),
+      child: BPCard(
+        padding: EdgeInsets.zero,
+        child: BPListTile(
+          title: habit.name,
+          subtitle: habit.type == HabitType.boolean
+              ? l.booleanHabitSubtitle
+              : l.countHabitSubtitle(habit.targetValue),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle),
               ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(l.archive),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: l.editHabitTitle,
+                onPressed: () => _showEditHabitSheet(context, habit, l),
               ),
             ],
           ),
-        );
-        if (confirmed == true) {
-          await context.read<HabitService>().archiveHabit(habit.id);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${l.archive}: ${habit.name}'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
-          return true;
-        }
-        return false;
-      },
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        title: Text(
-          habit.name,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          onTap: () => _showEditHabitSheet(context, habit, l),
         ),
-        subtitle: _buildHabitSubtitle(habit, l),
-        leading: const Icon(Icons.drag_handle),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: l.editHabitTitle,
-          onPressed: () => _showEditHabitSheet(context, habit, l),
-        ),
-        onTap: () => _showEditHabitSheet(context, habit, l),
       ),
     );
   }
 
-  Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
+Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
     if (habit.type == HabitType.boolean) {
-      return Text(
-        l.booleanHabitSubtitle,
-        style: const TextStyle(fontSize: 12),
-      );
-    } else {
-      return Text(
-        l.countHabitSubtitle(habit.targetValue),
-        style: const TextStyle(fontSize: 12),
-      );
+      return Text(l.booleanHabitSubtitle);
     }
+    return Text(l.countHabitSubtitle(habit.targetValue));
   }
 
   Future<void> _showAddHabitSheet(
@@ -180,13 +183,7 @@ class _HabitsPageState extends State<HabitsPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    l.newHabitTitle,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(l.newHabitTitle, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   TextField(
                     controller: nameController,
@@ -221,15 +218,11 @@ class _HabitsPageState extends State<HabitsPage> {
                               selectedType = value;
                             });
                             if (value == HabitType.count) {
-                              Future.delayed(
-                                const Duration(milliseconds: 80),
-                                () {
-                                  if (targetFocusNode.canRequestFocus) {
-                                    FocusScope.of(ctx)
-                                        .requestFocus(targetFocusNode);
-                                  }
-                                },
-                              );
+                              Future.delayed(const Duration(milliseconds: 80), () {
+                                if (targetFocusNode.canRequestFocus) {
+                                  FocusScope.of(ctx).requestFocus(targetFocusNode);
+                                }
+                              });
                             } else {
                               FocusScope.of(ctx).unfocus();
                             }
@@ -255,27 +248,27 @@ class _HabitsPageState extends State<HabitsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
+                      BPButton(
+                        label: l.cancel,
+                        kind: BPButtonKind.tertiary,
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: Text(l.cancel),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton(
+                      BPButton(
+                        label: l.save,
+                        kind: BPButtonKind.primary,
                         onPressed: () async {
                           final name = nameController.text.trim();
                           if (name.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l.habitNeedsName),
-                              ),
-                            );
+                            if (context.mounted) {
+                              BPSnackbar.error(context, l.habitNeedsName);
+                            }
                             return;
                           }
 
                           int? target;
                           if (selectedType == HabitType.count) {
-                            final t =
-                                int.tryParse(targetController.text.trim());
+                            final t = int.tryParse(targetController.text.trim());
                             target = (t == null || t <= 0) ? 1 : t;
                           }
 
@@ -287,9 +280,9 @@ class _HabitsPageState extends State<HabitsPage> {
 
                           if (context.mounted) {
                             Navigator.of(ctx).pop();
+                            BPSnackbar.success(context, '${l.save}: $name');
                           }
                         },
-                        child: Text(l.save),
                       ),
                     ],
                   ),
@@ -329,13 +322,7 @@ class _HabitsPageState extends State<HabitsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                l.editHabitTitle,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(l.editHabitTitle, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
@@ -355,96 +342,129 @@ class _HabitsPageState extends State<HabitsPage> {
                   ),
                 ),
               const SizedBox(height: 12),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextButton.icon(
-                    icon: const Icon(Icons.bar_chart),
-                    label: Text(l.buttonSeeStats),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => HabitStatsPage(habit: habit),
-                        ),
-                      );
-                    },
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (dCtx) => AlertDialog(
-                          title: Text(l.deleteHabitTitle),
-                          content: Text(
-                            l.deleteHabitMessage(habit.name),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.bar_chart),
+                      label: Text(l.buttonSeeStats),
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => HabitStatsPage(habit: habit),
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(dCtx).pop(false),
-                              child: Text(l.cancel),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(dCtx).pop(true),
-                              child: Text(l.delete),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        await context
-                            .read<HabitService>()
-                            .deleteHabit(habit.id);
-                        if (context.mounted) {
-                          Navigator.of(ctx).pop();
-                        }
-                      }
-                    },
-                    child: Text(
-                      l.delete,
-                      style: const TextStyle(color: Colors.redAccent),
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: () async {
-                      await context
-                          .read<HabitService>()
-                          .archiveHabit(habit.id);
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                      }
-                    },
-                    child: Text(l.buttonArchive),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final name = nameController.text.trim();
-                      int? target;
-                      if (habit.type == HabitType.count) {
-                        final t =
-                            int.tryParse(targetController.text.trim());
-                        if (t != null && t > 0) {
-                          target = t;
-                        }
-                      }
-
-                      await context.read<HabitService>().updateHabitBasic(
-                            habit.id,
-                            name: name.isEmpty ? null : name,
-                            targetValue: target,
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.end,
+                    children: [
+                      BPButton(
+                        label: l.delete,
+                        kind: BPButtonKind.destructive,
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            useRootNavigator: true,
+                            builder: (dCtx) => AlertDialog(
+                              title: Text(l.deleteHabitTitle),
+                              content: Text(l.deleteHabitMessage(habit.name)),
+                              actions: [
+                                BPButton(
+                                  label: l.cancel,
+                                  kind: BPButtonKind.tertiary,
+                                  onPressed: () => Navigator.of(dCtx).pop(false),
+                                ),
+                                BPButton(
+                                  label: l.delete,
+                                  kind: BPButtonKind.destructive,
+                                  onPressed: () => Navigator.of(dCtx).pop(true),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            
+            await context.read<HabitService>().archiveHabit(habit.id);
+                            if (context.mounted) {
+                              Navigator.of(ctx).pop();
+                              BPSnackbar.success(context, '${l.delete}: ${habit.name}');
+                            }
+                          }
+                        },
+                      ),
+                      BPButton(
+                        label: l.buttonArchive,
+                        kind: BPButtonKind.secondary,
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            useRootNavigator: true,
+                            builder: (dCtx) => AlertDialog(
+                              title: Text(l.archiveHabitTitle),
+                              content: Text(l.archiveHabitMessage(habit.name)),
+                              actions: [
+                                BPButton(
+                                  label: l.cancel,
+                                  kind: BPButtonKind.tertiary,
+                                  onPressed: () => Navigator.of(dCtx).pop(false),
+                                ),
+                                BPButton(
+                                  label: l.archive,
+                                  kind: BPButtonKind.primary,
+                                  onPressed: () => Navigator.of(dCtx).pop(true),
+                                ),
+                              ],
+                            ),
                           );
 
-                      if (context.mounted) {
-                        Navigator.of(ctx).pop();
-                      }
-                    },
-                    child: Text(l.save),
+                          if (confirmed == true) {
+                            
+            await context.read<HabitService>().archiveHabit(habit.id);
+                            if (context.mounted) {
+                              Navigator.of(ctx).pop();
+                              BPSnackbar.success(context, '${l.archive}: ${habit.name}');
+                            }
+                          }
+                        },
+                      ),
+                      BPButton(
+                        label: l.save,
+                        kind: BPButtonKind.primary,
+                        onPressed: () async {
+                          final name = nameController.text.trim();
+                          int? target;
+                          if (habit.type == HabitType.count) {
+                            final t = int.tryParse(targetController.text.trim());
+                            if (t != null && t > 0) target = t;
+                          }
+
+                          await context.read<HabitService>().updateHabitBasic(
+                                habit.id,
+                                name: name.isEmpty ? null : name,
+                                targetValue: target,
+                              );
+
+                          if (context.mounted) {
+                            Navigator.of(ctx).pop();
+                            BPSnackbar.success(context, l.save);
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+const SizedBox(height: 12),
             ],
           ),
         );
@@ -452,4 +472,3 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 }
-
