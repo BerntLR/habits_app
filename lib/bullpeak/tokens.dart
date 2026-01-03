@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Tokens {
-  static const Color background = Color(0xFF000000);
+  static const Color background = Color(0xFFFFFFFF);
   static const Color backgroundDark = Color(0xFF000000);
   static const Color error = Color(0xFFC4473D);
   static const Color success = Color(0xFF2E7D32);
