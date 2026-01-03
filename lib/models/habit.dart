@@ -67,9 +67,8 @@ class Habit {
           ? HabitType.count
           : HabitType.boolean,
       targetValue: map['targetValue'] as int,
-      activeWeekdays: (map['activeWeekdays'] as List<dynamic>)
-          .map((e) => e as int)
-          .toSet(),
+      activeWeekdays:
+          (map['activeWeekdays'] as List<dynamic>).map((e) => e as int).toSet(),
       isArchived: (map['isArchived'] as bool?) ?? false,
       createdAt: DateTime.parse(map['createdAt'] as String),
       sortOrder: (map['sortOrder'] as int?) ?? 0,

@@ -13,9 +13,7 @@ class ArchivedHabitsPage extends StatelessWidget {
 
     // Antar at HabitService har en getter `habits` som returnerer alle vaner.
     final allHabits = habitService.habits;
-    final archived = allHabits
-        .where((h) => h.isArchived)
-        .toList()
+    final archived = allHabits.where((h) => h.isArchived).toList()
       ..sort((a, b) {
         // Sorter alfabetisk som fallback.
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());

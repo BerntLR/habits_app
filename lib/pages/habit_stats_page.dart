@@ -267,7 +267,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      _monthLabel(context, _currentMonth.year, _currentMonth.month),
+                      _monthLabel(
+                          context, _currentMonth.year, _currentMonth.month),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.black87,
                           ),
@@ -362,7 +363,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           : Colors.black.withOpacity(0.08);
 
       final locale = Localizations.localeOf(context).toLanguageTag();
-      final monthName = DateFormat('MMM', locale).format(DateTime(2020, month, 1));
+      final monthName =
+          DateFormat('MMM', locale).format(DateTime(2020, month, 1));
 
       monthTiles.add(
         Card(
@@ -534,4 +536,3 @@ class LegendItem extends StatelessWidget {
     );
   }
 }
-

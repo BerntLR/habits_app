@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'bullpeak/app_accent.dart';
+import 'bullpeak/theme.dart';
+
 import 'l10n/app_localizations.dart';
 import 'services/habit_service.dart';
 import 'pages/today_page.dart';
@@ -24,7 +27,9 @@ class HabitsApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: "Karo's Habits",
-        theme: _buildKaroTheme(),
+        theme: BullPeakTheme.light(accent: AppAccent.color),
+        darkTheme: BullPeakTheme.dark(accent: AppAccent.color),
+        themeMode: ThemeMode.system,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -55,9 +60,9 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   int _step = 0;
 
   final List<String> _comics = const [
-    'assets/splash/tegneserie_1.png',
-    'assets/splash/tegneserie_2.png',
-    'assets/splash/tegneserie_3.png',
+    'assets/tegneserie_1.png',
+    'assets/tegneserie_2.png',
+    'assets/tegneserie_3.png',
   ];
 
   late final List<String> _sequence;
@@ -69,9 +74,8 @@ class _IntroFlowPageState extends State<IntroFlowPage>
     _randomComic = _comics[Random().nextInt(_comics.length)];
 
     _sequence = [
-
-      'assets/splash/emblem_mobil.png', // emblem
-      _randomComic,                        // ÉN tilfeldig stripe
+      'assets/emblem_mobil.png', // emblem
+      _randomComic, // ÉN tilfeldig stripe
     ];
 
     _fadeController = AnimationController(
@@ -113,7 +117,7 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8E1B5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -128,39 +132,6 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   }
 }
 
-ThemeData _buildKaroTheme() {
-  const krem = Color(0xFFF8E1B5);
-  const primary = Color(0xFF254E70);
-  const accent = Color(0xFFF58B3B);
-  const error = Color(0xFFC4473D);
-  const darkText = Color(0xFF3A2B22);
-
-  final base = ThemeData(
-    brightness: Brightness.light,
-    useMaterial3: true,
-  );
-
-  return base.copyWith(
-    scaffoldBackgroundColor: krem,
-    primaryColor: primary,
-    colorScheme: base.colorScheme.copyWith(
-      primary: primary,
-      secondary: accent,
-      surface: Colors.white,
-      background: krem,
-      error: error,
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: primary,
-      foregroundColor: Colors.white,
-      centerTitle: true,
-    ),
-    textTheme: base.textTheme.apply(
-      bodyColor: darkText,
-      displayColor: darkText,
-    ),
-  );
-}
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -210,4 +181,3 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 }
-

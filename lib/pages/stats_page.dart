@@ -62,8 +62,7 @@ class _HabitWeekStat {
   final int activeDays;
   _HabitWeekStat(this.habit, this.completedDays, this.activeDays);
 
-  double get ratio =>
-      activeDays == 0 ? 0 : completedDays / activeDays;
+  double get ratio => activeDays == 0 ? 0 : completedDays / activeDays;
 }
 
 class _WeeklyData {
@@ -119,8 +118,8 @@ _WeeklyData _computeWeeklyData(HabitService service, DateTime today) {
 
     for (int i = 0; i < 7; i++) {
       final d = todayN.subtract(Duration(days: i));
-      if (h.activeWeekdays.isNotEmpty &&
-          !h.activeWeekdays.contains(d.weekday)) continue;
+      if (h.activeWeekdays.isNotEmpty && !h.activeWeekdays.contains(d.weekday))
+        continue;
       active++;
       if (service.isHabitDone(h.id, d)) done++;
     }
@@ -139,15 +138,13 @@ _WeeklyData _computeWeeklyData(HabitService service, DateTime today) {
 
 /* ---------- UI ---------- */
 
-Widget _weeklySummary(
-    BuildContext c, _WeeklyData d, AppLocalizations l) {
+Widget _weeklySummary(BuildContext c, _WeeklyData d, AppLocalizations l) {
   final percent = (d.avg * 100).round();
   return Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l.statsLast7Days,
-            style: Theme.of(c).textTheme.titleMedium),
+        Text(l.statsLast7Days, style: Theme.of(c).textTheme.titleMedium),
         const SizedBox(height: 8),
         LinearProgressIndicator(value: d.avg, minHeight: 10),
         const SizedBox(height: 8),
@@ -158,14 +155,12 @@ Widget _weeklySummary(
   );
 }
 
-Widget _dailyBars(
-    BuildContext c, _WeeklyData d, AppLocalizations l) {
+Widget _dailyBars(BuildContext c, _WeeklyData d, AppLocalizations l) {
   return Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l.statsDaysTitle,
-            style: Theme.of(c).textTheme.titleMedium),
+        Text(l.statsDaysTitle, style: Theme.of(c).textTheme.titleMedium),
         const SizedBox(height: 12),
         SizedBox(
           height: 120,
@@ -183,9 +178,8 @@ Widget _dailyBars(
                       height: (e.progress * 80) + 4,
                       width: 14,
                       decoration: BoxDecoration(
-                        color: e.progress == 0
-                            ? Colors.grey
-                            : Colors.tealAccent,
+                        color:
+                            e.progress == 0 ? Colors.grey : Colors.tealAccent,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -200,16 +194,14 @@ Widget _dailyBars(
   );
 }
 
-Widget _bestHabits(
-    BuildContext c, _WeeklyData d, AppLocalizations l) {
+Widget _bestHabits(BuildContext c, _WeeklyData d, AppLocalizations l) {
   final list = d.habits.where((h) => h.activeDays > 0).take(10).toList();
 
   return Card(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l.statsBestHabits,
-            style: Theme.of(c).textTheme.titleMedium),
+        Text(l.statsBestHabits, style: Theme.of(c).textTheme.titleMedium),
         const SizedBox(height: 8),
         ...list.map((h) {
           final p = (h.ratio * 100).round();
@@ -232,4 +224,3 @@ Widget _bestHabits(
     ),
   );
 }
-

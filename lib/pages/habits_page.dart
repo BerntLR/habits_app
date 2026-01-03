@@ -88,7 +88,7 @@ class _HabitsPageState extends State<HabitsPage> {
       dismissKey: ValueKey('habit_${habit.id}'),
       // BPSwipeActions is locked: LEFT => delete, RIGHT => edit.
       // Here we use LEFT as "delete" (destructive).
-      onDelete: () {
+      onDelete: () async {
         () async {
           final confirmed = await showDialog<bool>(
             context: context,

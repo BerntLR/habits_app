@@ -96,7 +96,8 @@ class AppLocalizationsNb extends AppLocalizations {
   String get statsTitle => 'Statistikk';
 
   @override
-  String get statsNoHabits => 'Ingen vaner enda. Legg til vaner under \"Vaner\".';
+  String get statsNoHabits =>
+      'Ingen vaner enda. Legg til vaner under \"Vaner\".';
 
   @override
   String get statsLast7Days => 'Denne uken (siste 7 dager)';

@@ -375,7 +375,7 @@ class _TodayHabitTile extends StatelessWidget {
           }
         }
       },
-      onEdit: () {
+      onEdit: () async {
         _editHabit(context);
       },
       child: BPListTile(
