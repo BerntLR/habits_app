@@ -74,14 +74,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
       );
       service.updateHabit(updated);
     } else {
-      final newHabit = Habit(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        name: name,
-        type: _selectedType,
-        targetValue: target,
-        activeWeekdays: _weekdays,
-      );
-      service.addHabit(newHabit);
+      service.addHabit(name: name, type: _selectedType, targetValue: target, activeWeekdays: _weekdays);
     }
 
     Navigator.of(context).pop();
@@ -96,14 +89,14 @@ class _HabitEditPageState extends State<HabitEditPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Slett vane?'),
+          title: const Text('Delete habit?'),
           content: Text(
             'Er du sikker på at du vil slette "${widget.existing!.name}"?',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Avbryt'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -111,7 +104,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
-              child: const Text('Slett'),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -121,7 +114,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isEditing ? 'Rediger vane' : 'Ny vane';
+    final title = _isEditing ? 'Edit habit' : 'New habit';
 
     return Scaffold(
       appBar: AppBar(
@@ -141,13 +134,13 @@ class _HabitEditPageState extends State<HabitEditPage> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
-                labelText: 'Navn på vane',
+                labelText: 'Habit name',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<HabitType>(
-              value: _selectedType,
+              initialValue: _selectedType,
               items: const [
                 DropdownMenuItem(
                   value: HabitType.boolean,
@@ -181,7 +174,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
               ),
             if (_selectedType == HabitType.count) const SizedBox(height: 16),
             Text(
-              'Ukedager',
+              'Weekdays',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -212,7 +205,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
               child: ElevatedButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.check),
-                label: const Text('Lagre'),
+                label: const Text('Save'),
               ),
             ),
           ],

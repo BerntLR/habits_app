@@ -12,6 +12,7 @@ import 'services/habit_service.dart';
 import 'pages/today_page.dart';
 import 'pages/habits_page.dart';
 import 'pages/stats_page.dart';
+import 'pages/info_page.dart';
 
 void main() {
   runApp(const HabitsApp());
@@ -36,7 +37,8 @@ class HabitsApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en')],
         home: const IntroFlowPage(),
       ),
     );
@@ -74,7 +76,7 @@ class _IntroFlowPageState extends State<IntroFlowPage>
     _randomComic = _comics[Random().nextInt(_comics.length)];
 
     _sequence = [
-      'assets/emblem_mobil.png', // emblem
+      'assets/emblem.png', // emblem
       _randomComic, // ÉN tilfeldig stripe
     ];
 
@@ -96,9 +98,7 @@ class _IntroFlowPageState extends State<IntroFlowPage>
       setState(() => _step = i);
 
       await _fadeController.forward();
-      await Future.delayed(
-        Duration(milliseconds: i == 2 ? 3500 : 1500),
-      );
+      await Future.delayed(const Duration(milliseconds: 1500));
       await _fadeController.reverse();
     }
 
@@ -117,13 +117,13 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFF000000),
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Image.asset(
             _sequence[_step],
-            width: MediaQuery.of(context).size.width * 0.9,
+            width: MediaQuery.of(context).size.width * (_step == 0 ? 0.55 : 0.75),
             fit: BoxFit.contain,
           ),
         ),
@@ -147,7 +147,9 @@ class _HomeShellState extends State<HomeShell> {
     TodayPage(),
     HabitsPage(),
     StatsPage(),
+    InfoPage(),
   ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -162,21 +164,27 @@ class _HomeShellState extends State<HomeShell> {
         },
         destinations: [
           NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
+            icon: const Icon(Icons.today_outlined),
+            selectedIcon: const Icon(Icons.today),
             label: l.tabToday,
           ),
           NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt),
+            icon: const Icon(Icons.list_alt_outlined),
+            selectedIcon: const Icon(Icons.list_alt),
             label: l.tabHabits,
           ),
           NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
+            icon: const Icon(Icons.insights_outlined),
+            selectedIcon: const Icon(Icons.insights),
             label: l.tabStats,
           ),
+          const NavigationDestination(
+            icon: Icon(Icons.info_outline),
+            selectedIcon: Icon(Icons.info),
+            label: "Info",
+          ),
         ],
+
       ),
     );
   }

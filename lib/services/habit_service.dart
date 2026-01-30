@@ -119,6 +119,32 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
+
+  /// Full update of a habit (name, type, target, weekdays).
+  Future<void> updateHabit(Habit updated) async {
+    final index = _habits.indexWhere((h) => h.id == updated.id);
+    if (index == -1) return;
+
+    final old = _habits[index];
+    final newName = updated.name.trim().isEmpty ? old.name : updated.name.trim();
+    final newType = updated.type;
+    final newTarget = newType == HabitType.boolean ? 1 : updated.targetValue;
+    final newWeekdays = updated.activeWeekdays;
+
+    _habits[index] = old.copyWith(
+      name: newName,
+      type: newType,
+      targetValue: newTarget,
+      activeWeekdays: newWeekdays,
+    );
+
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  /// Backwards-compatible alias for deleteHabit().
+  Future<void> removeHabit(String habitId) => deleteHabit(habitId);
+
   /// Arkiver en vane (fjernes fra lister, men beholdes i historikk).
   Future<void> archiveHabit(String habitId) async {
     final index = _habits.indexWhere((h) => h.id == habitId);
@@ -363,4 +389,36 @@ class HabitService extends ChangeNotifier {
     });
     await prefs.setString(_entriesStorageKey, jsonEncode(allEntries));
   }
+
+  Map<String, dynamic> exportData() {
+    return {
+      'habits': _habits.map((h) => h.toMap()).toList(),
+      'entries': _entriesByHabit.values
+          .expand((m) => m.values)
+          .map((e) => e.toMap())
+          .toList(),
+    };
+  }
+
+  Future<void> importData(Map<String, dynamic> data) async {
+    _habits.clear();
+    _entriesByHabit.clear();
+
+    final habits = (data['habits'] as List).cast<Map>();
+    for (final h in habits) {
+      _habits.add(Habit.fromMap(Map<String, dynamic>.from(h)));
+    }
+
+    final entries = (data['entries'] as List).cast<Map>();
+    for (final e in entries) {
+      final entry = HabitEntry.fromMap(Map<String, dynamic>.from(e));
+      final map = _entriesByHabit.putIfAbsent(entry.habitId, () => {});
+      map[normalizeDate(entry.date)] = entry;
+    }
+
+    await _saveToStorage();
+    notifyListeners();
+  }
+
 }
+

@@ -6,3 +6,39 @@ assets/_bak/
 assets/_bak_unused/
 
 lib/main.dart.bak
+
+# Flutter/Dart generated
+.dart_tool/
+.buildlog
+.packages
+.pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Build outputs
+build/
+
+# Platform ephemeral
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/Flutter/.last_build_id
+ios/Runner/GeneratedPluginRegistrant.*
+
+android/.gradle/
+android/local.properties
+android/**/GeneratedPluginRegistrant.*
+android/**/generated_plugin_registrant.dart
+
+# Flutter / Dart build artifacts
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Flutter / Dart build artifacts
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies

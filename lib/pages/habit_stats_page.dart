@@ -89,7 +89,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       if (habit.targetValue > 0 && value >= habit.targetValue) {
         return Colors.greenAccent.shade400;
       }
-      return Colors.amberAccent.withOpacity(0.6);
+      return Colors.amberAccent.withAlpha((0.6 * 255).round());
     }
   }
 
@@ -114,7 +114,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       if (habit.targetValue > 0 && value >= habit.targetValue) {
         return Colors.greenAccent.shade400;
       }
-      return Colors.amberAccent.withOpacity(0.6);
+      return Colors.amberAccent.withAlpha((0.6 * 255).round());
     }
   }
 
@@ -207,7 +207,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       final borderColor = isToday
           ? _todayBorderColor
           : hasActivity
-              ? Colors.black.withOpacity(0.2)
+              ? Colors.black.withAlpha((0.2 * 255).round())
               : Colors.grey.shade800;
 
       final borderWidth = isToday ? 1.4 : 0.6;
@@ -217,7 +217,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => TodayPage(initialDate: date),
+                builder: (_) => TodayPage(initialDate: date, showBackButton: true),
               ),
             );
           },
@@ -356,11 +356,11 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
       }
 
       final Color cardColor = isCurrentMonth
-          ? theme.colorScheme.secondary.withOpacity(0.12)
+          ? theme.colorScheme.secondary.withAlpha((0.12 * 255).round())
           : Colors.white;
       final Color borderColor = isCurrentMonth
           ? theme.colorScheme.secondary
-          : Colors.black.withOpacity(0.08);
+          : Colors.black.withAlpha((0.08 * 255).round());
 
       final locale = Localizations.localeOf(context).toLanguageTag();
       final monthName =
@@ -388,7 +388,7 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                     fontWeight: FontWeight.w600,
                     color: isCurrentMonth
                         ? theme.colorScheme.primary
-                        : theme.textTheme.bodyMedium?.color?.withOpacity(0.9),
+                        : theme.textTheme.bodyMedium?.color?.withAlpha((0.9 * 255).round()),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -468,7 +468,7 @@ class StatusLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final noneColor = Colors.grey.shade900;
-    final partialColor = Colors.amberAccent.withOpacity(0.6);
+    final partialColor = Colors.amberAccent.withAlpha((0.6 * 255).round());
     final fullColor = Colors.greenAccent.shade400;
 
     return Padding(
@@ -476,11 +476,11 @@ class StatusLegend extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withAlpha((0.9 * 255).round()),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha((0.05 * 255).round()),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),

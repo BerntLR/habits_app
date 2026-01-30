@@ -105,7 +105,7 @@ _WeeklyData _computeWeeklyData(HabitService service, DateTime today) {
       }
     }
 
-    final p = ((daySum / list.length).clamp(0.0, 1.0) as double);
+    final p = (daySum / list.length).clamp(0.0, 1.0);
     days.add(_DayStat(d, p, true));
     sum += p;
     used++;
@@ -118,8 +118,9 @@ _WeeklyData _computeWeeklyData(HabitService service, DateTime today) {
 
     for (int i = 0; i < 7; i++) {
       final d = todayN.subtract(Duration(days: i));
-      if (h.activeWeekdays.isNotEmpty && !h.activeWeekdays.contains(d.weekday))
+      if (h.activeWeekdays.isNotEmpty && !h.activeWeekdays.contains(d.weekday)) {
         continue;
+      }
       active++;
       if (service.isHabitDone(h.id, d)) done++;
     }

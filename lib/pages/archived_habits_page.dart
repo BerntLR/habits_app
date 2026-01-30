@@ -21,7 +21,7 @@ class ArchivedHabitsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Arkiverte vaner'),
+        title: const Text('Archived habits'),
       ),
       body: SafeArea(
         child: archived.isEmpty
@@ -30,7 +30,7 @@ class ArchivedHabitsPage extends StatelessWidget {
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'Ingen arkiverte vaner ennå.\n'
-                    'Arkiver en vane fra Vaner-fanen for å rydde i listen.',
+                    'Archive a habit from the Habits tab to clean up the list.',
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -77,7 +77,7 @@ class _ArchivedHabitTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'Gjenopprett',
+              tooltip: 'Restore',
               icon: const Icon(Icons.unarchive_outlined),
               onPressed: () {
                 // Vi antar at archiveHabit toggler arkivstatus.
@@ -91,13 +91,13 @@ class _ArchivedHabitTile extends StatelessWidget {
               },
             ),
             IconButton(
-              tooltip: 'Slett vane',
+              tooltip: 'Delete habit',
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
                 final ok = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        title: const Text('Slette vane?'),
+                        title: const Text('Delete habit?'),
                         content: Text(
                           'Vil du slette vanen "${habit.name}" permanent?\n'
                           'Historikk for denne vanen vil ogsa forsvinne.',
@@ -105,11 +105,11 @@ class _ArchivedHabitTile extends StatelessWidget {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(false),
-                            child: const Text('Avbryt'),
+                            child: const Text('Cancel'),
                           ),
                           FilledButton(
                             onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text('Slett'),
+                            child: const Text('Delete'),
                           ),
                         ],
                       ),
@@ -117,6 +117,8 @@ class _ArchivedHabitTile extends StatelessWidget {
                     false;
 
                 if (!ok) return;
+
+                if (!context.mounted) return;
 
                 habitService.deleteHabit(habit.id);
                 ScaffoldMessenger.of(context).showSnackBar(

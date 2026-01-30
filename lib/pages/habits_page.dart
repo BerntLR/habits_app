@@ -56,7 +56,7 @@ class _HabitsPageState extends State<HabitsPage> {
               icon: Icons.list_alt_outlined,
               title: isEn ? 'No habits yet' : 'Ingen vaner enda',
               message: l.habitsEmptyText,
-              actionLabel: isEn ? 'Add habit' : 'Legg til vane',
+              actionLabel: isEn ? 'Add habit' : 'Add habit',
               onAction: () => _showAddHabitSheet(context, l),
             )
           : ReorderableListView.builder(
@@ -89,37 +89,36 @@ class _HabitsPageState extends State<HabitsPage> {
       // BPSwipeActions is locked: LEFT => delete, RIGHT => edit.
       // Here we use LEFT as "delete" (destructive).
       onDelete: () async {
-        () async {
-          final confirmed = await showDialog<bool>(
-            context: context,
-            barrierDismissible: true,
-            useRootNavigator: true,
-            builder: (ctx) => AlertDialog(
-              title: Text(l.deleteHabitTitle),
-              content: Text(l.deleteHabitMessage(habit.name)),
-              actions: [
-                BPButton(
-                  label: l.cancel,
-                  kind: BPButtonKind.tertiary,
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                ),
-                BPButton(
-                  label: l.delete,
-                  kind: BPButtonKind.primary,
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                ),
-              ],
-            ),
-          );
+        final confirmed = await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          useRootNavigator: true,
+          builder: (ctx) => AlertDialog(
+            title: Text(l.deleteHabitTitle),
+            content: Text(l.deleteHabitMessage(habit.name)),
+            actions: [
+              BPButton(
+                label: l.cancel,
+                kind: BPButtonKind.tertiary,
+                onPressed: () => Navigator.of(ctx).pop(false),
+              ),
+              BPButton(
+                label: l.delete,
+                kind: BPButtonKind.primary,
+                onPressed: () => Navigator.of(ctx).pop(true),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
 
-          if (confirmed == true) {
-            
-            await context.read<HabitService>().deleteHabit(habit.id);
-            if (context.mounted) {
-              BPSnackbar.success(context, '${l.delete}: ${habit.name}');
-            }
-          }
-        }();
+
+        if (confirmed != true) return;
+
+        await context.read<HabitService>().deleteHabit(habit.id);
+        if (!context.mounted) return;
+
+        BPSnackbar.success(context, '${l.delete}: ${habit.name}');
       },
       onEdit: () => _showEditHabitSheet(context, habit, l),
       child: BPCard(
@@ -149,13 +148,6 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 
-Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
-    if (habit.type == HabitType.boolean) {
-      return Text(l.booleanHabitSubtitle);
-    }
-    return Text(l.countHabitSubtitle(habit.targetValue));
-  }
-
   Future<void> _showAddHabitSheet(
     BuildContext context,
     AppLocalizations l,
@@ -183,7 +175,10 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(l.newHabitTitle, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    l.newHabitTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: nameController,
@@ -197,7 +192,7 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<HabitType>(
-                          value: selectedType,
+                          initialValue: selectedType,
                           decoration: InputDecoration(
                             labelText: l.fieldTypeLabel,
                             border: const OutlineInputBorder(),
@@ -220,6 +215,7 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                             if (value == HabitType.count) {
                               Future.delayed(const Duration(milliseconds: 80), () {
                                 if (targetFocusNode.canRequestFocus) {
+                                  if (!ctx.mounted) return;
                                   FocusScope.of(ctx).requestFocus(targetFocusNode);
                                 }
                               });
@@ -260,9 +256,8 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                         onPressed: () async {
                           final name = nameController.text.trim();
                           if (name.isEmpty) {
-                            if (context.mounted) {
-                              BPSnackbar.error(context, l.habitNeedsName);
-                            }
+                            if (!context.mounted) return;
+                            BPSnackbar.error(context, l.habitNeedsName);
                             return;
                           }
 
@@ -278,10 +273,10 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                                 targetValue: target,
                               );
 
-                          if (context.mounted) {
-                            Navigator.of(ctx).pop();
-                            BPSnackbar.success(context, '${l.save}: $name');
-                          }
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).pop();
+                          BPSnackbar.success(context, '${l.save}: $name');
                         },
                       ),
                     ],
@@ -322,7 +317,10 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l.editHabitTitle, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                l.editHabitTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
@@ -391,14 +389,16 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                               ],
                             ),
                           );
-                          if (confirmed == true) {
-                            
-            await context.read<HabitService>().archiveHabit(habit.id);
-                            if (context.mounted) {
-                              Navigator.of(ctx).pop();
-                              BPSnackbar.success(context, '${l.delete}: ${habit.name}');
-                            }
-                          }
+                          if (!context.mounted) return;
+
+
+                          if (confirmed != true) return;
+
+                          await context.read<HabitService>().archiveHabit(habit.id);
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).pop();
+                          BPSnackbar.success(context, '${l.delete}: ${habit.name}');
                         },
                       ),
                       BPButton(
@@ -426,15 +426,16 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                               ],
                             ),
                           );
+                          if (!context.mounted) return;
 
-                          if (confirmed == true) {
-                            
-            await context.read<HabitService>().archiveHabit(habit.id);
-                            if (context.mounted) {
-                              Navigator.of(ctx).pop();
-                              BPSnackbar.success(context, '${l.archive}: ${habit.name}');
-                            }
-                          }
+
+                          if (confirmed != true) return;
+
+                          await context.read<HabitService>().archiveHabit(habit.id);
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).pop();
+                          BPSnackbar.success(context, '${l.archive}: ${habit.name}');
                         },
                       ),
                       BPButton(
@@ -454,17 +455,17 @@ Widget _buildHabitSubtitle(Habit habit, AppLocalizations l) {
                                 targetValue: target,
                               );
 
-                          if (context.mounted) {
-                            Navigator.of(ctx).pop();
-                            BPSnackbar.success(context, l.save);
-                          }
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).pop();
+                          BPSnackbar.success(context, l.save);
                         },
                       ),
                     ],
                   ),
                 ],
               ),
-const SizedBox(height: 12),
+              const SizedBox(height: 12),
             ],
           ),
         );

@@ -5,17 +5,16 @@ import 'package:provider/provider.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
-import '../services/backup_service.dart';
 import '../bullpeak/widgets/bp_empty_state.dart';
 import 'habits_page.dart';
-import '../main.dart';
 import '../bullpeak/widgets/bp_section_header.dart';
 import '../bullpeak/tokens.dart';
 import '../bullpeak/widgets/bp_card.dart';
 class TodayPage extends StatefulWidget {
   final DateTime? initialDate;
+  final bool showBackButton;
 
-  const TodayPage({super.key, this.initialDate});
+  const TodayPage({super.key, this.initialDate, this.showBackButton = false});
 
   @override
   State<TodayPage> createState() => _TodayPageState();
@@ -23,7 +22,6 @@ class TodayPage extends StatefulWidget {
 
 class _TodayPageState extends State<TodayPage> {
   late DateTime _currentDate;
-  final BackupService _backupService = BackupService();
 
   @override
   void initState() {
@@ -58,9 +56,9 @@ class _TodayPageState extends State<TodayPage> {
     final tomorrow = today.add(const Duration(days: 1));
     final isEn = _isEnglish(context);
 
-    if (date == today) return isEn ? 'Today' : 'I dag';
-    if (date == yesterday) return isEn ? 'Yesterday' : 'I gar';
-    if (date == tomorrow) return isEn ? 'Tomorrow' : 'I morgen';
+    if (date == today) return isEn ? 'Today' : 'Today';
+    if (date == yesterday) return isEn ? 'Yesterday' : 'Yesterday';
+    if (date == tomorrow) return isEn ? 'Tomorrow' : 'Tomorrow';
 
     const monthsNo = [
       'januar',
@@ -100,51 +98,6 @@ class _TodayPageState extends State<TodayPage> {
     }
   }
 
-  Future<void> _showBackupSheet(BuildContext context) async {
-    final isEn = _isEnglish(context);
-
-    await showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.cloud_upload_outlined),
-                title: Text(isEn ? 'Export backup' : 'Eksporter backup'),
-                subtitle: Text(
-                  isEn
-                      ? 'Save habits and history to file'
-                      : 'Lagre vaner og historikk til fil',
-                ),
-                onTap: () async {
-                  Navigator.of(ctx).pop();
-                  await _backupService.exportBackup(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cloud_download_outlined),
-                title: Text(isEn ? 'Import backup' : 'Importer backup'),
-                subtitle: Text(
-                  isEn
-                      ? 'Restore from existing file'
-                      : 'Gjenopprett fra tidligere fil',
-                ),
-                onTap: () async {
-                  Navigator.of(ctx).pop();
-                  await _backupService.importBackup(context);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
@@ -169,12 +122,7 @@ class _TodayPageState extends State<TodayPage> {
         } catch (_) {}
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
-
-    final emptyText = isEn
-        ? 'No habits for this day.\nAdd habits on the Habits tab.'
-        : 'Ingen vaner for denne dagen.\nLegg til vaner pa Vaner-fanen.';
-
-    return SafeArea(
+    final content = SafeArea(
       child: Column(
         children: [
           const SizedBox(height: 8),
@@ -189,9 +137,9 @@ class _TodayPageState extends State<TodayPage> {
                     title: isEn ? 'No habits today' : 'Ingen vaner i dag',
                     message: isEn
                         ? 'Add habits on the Habits tab.'
-                        : 'Legg til vaner pa Vaner-fanen.',
+                        : 'Add habits on the Habits tab.',
                     icon: Icons.checklist_outlined,
-                    actionLabel: isEn ? 'Add habit' : 'Legg til vane',
+                    actionLabel: isEn ? 'Add habit' : 'Add habit',
                     onAction: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const HabitsPage()),
@@ -214,6 +162,19 @@ class _TodayPageState extends State<TodayPage> {
         ],
       ),
     );
+
+    if (!widget.showBackButton) return content;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        centerTitle: true,
+      ),
+      body: content,
+    );
   }
 
   Widget _buildDateHeader(BuildContext context) {
@@ -223,10 +184,7 @@ class _TodayPageState extends State<TodayPage> {
 
     final subtitle = isToday
         ? (isEn ? 'Your habits today' : 'Dine vaner i dag')
-        : (isEn ? 'Habits for selected date' : 'Vaner for valgt dato');
-
-    final backupTooltip =
-        isEn ? 'Export/import backup' : 'Eksporter/importer backup';
+        : (isEn ? 'Habits for selected date' : 'Habits for selected date');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,19 +195,12 @@ class _TodayPageState extends State<TodayPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: isEn ? 'Previous day' : 'Forrige dag',
+                tooltip: isEn ? 'Previous day' : 'Previous day',
                 icon: const Icon(Icons.chevron_left),
                 onPressed: () => _changeDay(-1),
               ),
-              Tooltip(
-                message: backupTooltip,
-                child: IconButton(
-                  icon: const Icon(Icons.backup_outlined),
-                  onPressed: () => _showBackupSheet(context),
-                ),
-              ),
               IconButton(
-                tooltip: isEn ? 'Next day' : 'Neste dag',
+                tooltip: isEn ? 'Next day' : 'Next day',
                 icon: const Icon(Icons.chevron_right),
                 onPressed: isToday ? null : () => _changeDay(1),
               ),
@@ -286,11 +237,11 @@ class _TodayPageState extends State<TodayPage> {
 
     final summaryText = isEn
         ? 'Completed $doneCount of $total habits'
-        : 'Fullfort $doneCount av $total vaner';
+        : 'Completed $doneCount of $total habits';
 
     final tipText = isEn
         ? 'Tip: Tap a habit to mark it as done. For count habits, use + and -.'
-        : 'Tips: Trykk pa en vane for a markere den som gjort. For telle-vaner kan du bruke + og -.';
+        : 'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
 
     return BPCard(
       margin: const EdgeInsets.symmetric(horizontal: BPSpacing.l, vertical: 6),
@@ -353,20 +304,21 @@ class _TodayHabitTile extends StatelessWidget {
           barrierDismissible: true,
           useRootNavigator: true,
           builder: (dCtx) => AlertDialog(
-            title: const Text('Slett vane'),
+            title: const Text('Delete habit'),
             content: Text('Vil du slette "${habit.name}"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(false),
-                child: const Text('Avbryt'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(true),
-                child: const Text('Slett'),
+                child: const Text('Delete'),
               ),
             ],
           ),
         );
+        if (!context.mounted) return;
 
         if (confirmed == true) {
           final service = context.read<HabitService>();
@@ -424,14 +376,14 @@ class _TodayHabitTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Rediger vane',
+                'Edit habit',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Navn',
+                  labelText: 'Name',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -441,7 +393,7 @@ class _TodayHabitTile extends StatelessWidget {
                   controller: targetController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Maal per dag',
+                    labelText: 'Goal per day',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -454,7 +406,7 @@ class _TodayHabitTile extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Avbryt'),
+                    child: const Text('Cancel'),
                   ),
                   TextButton(
                     onPressed: () async {
@@ -463,29 +415,30 @@ class _TodayHabitTile extends StatelessWidget {
                         barrierDismissible: true,
                         useRootNavigator: true,
                         builder: (dCtx) => AlertDialog(
-                          title: const Text('Arkiver vane'),
+                          title: const Text('Archive habit'),
                           content: Text('Vil du arkivere "${habit.name}"?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(false),
-                              child: const Text('Avbryt'),
+                              child: const Text('Cancel'),
                             ),
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(true),
-                              child: const Text('Arkiver'),
+                              child: const Text('Archive'),
                             ),
                           ],
                         ),
                       );
+                      if (!context.mounted) return;
 
                       if (confirmed == true) {
                         await context.read<HabitService>().archiveHabit(habit.id);
                         if (context.mounted) {
-                          Navigator.of(ctx).pop();
+                          Navigator.of(context).pop();
                         }
                       }
                     },
-                    child: const Text('Arkiver'),
+                    child: const Text('Archive'),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -503,10 +456,10 @@ class _TodayHabitTile extends StatelessWidget {
                           );
 
                       if (context.mounted) {
-                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pop();
                       }
                     },
-                    child: const Text('Lagre'),
+                    child: const Text('Save'),
                   ),
                 ],
               ),
@@ -529,69 +482,6 @@ class _TodayHabitTile extends StatelessWidget {
     } else {
       service.incrementCount(habit.id, date);
     }
-  }
-
-  Widget _buildLeadingCheckbox(BuildContext context, bool done) {
-    if (habit.type == HabitType.boolean) {
-      return Checkbox(
-        value: done,
-        onChanged: (_) {
-          final service = context.read<HabitService>();
-          service.toggleHabit(habit.id, date);
-        },
-      );
-    } else {
-      return Icon(
-        done ? Icons.check_circle : Icons.radio_button_unchecked,
-        color: done
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).disabledColor,
-      );
-    }
-  }
-
-  Widget _buildTexts(
-    BuildContext context,
-    bool done,
-    int count,
-    int streak,
-  ) {
-    final titleStyle = TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      decoration: done ? TextDecoration.lineThrough : TextDecoration.none,
-      color: done
-          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
-          : Theme.of(context).colorScheme.onSurface,
-    );
-
-    final subtitleStyle = TextStyle(
-      fontSize: 12,
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(habit.name, style: titleStyle),
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            if (habit.type == HabitType.count)
-              Text(
-                '$count / ${habit.targetValue}',
-                style: subtitleStyle,
-              ),
-            if (habit.type == HabitType.count && streak > 0)
-              const SizedBox(width: 12),
-            if (streak > 0)
-              _StreakChip(
-                streak: streak,
-              ),
-          ],
-        ),
-      ],
-    );
   }
 
   Widget _buildCountControls(
