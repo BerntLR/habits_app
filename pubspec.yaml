@@ -4,6 +4,7 @@ description: A new Flutter project.
 publish_to: "none"
 
 version: 1.0.0+11
+
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
@@ -35,12 +36,14 @@ flutter:
   assets:
     - assets/
     - assets/icons/
+
 flutter_native_splash:
   color: "#000000"
-  image: assets/splash.png
+  image: assets/karo.png
   android: true
   ios: true
+
   android_12:
-    color: "#F8E1B5"
-    image: assets/splash.png
+    color: "#000000"
+    image: assets/ikon_android12.png
 

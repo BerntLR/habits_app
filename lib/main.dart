@@ -27,7 +27,7 @@ class HabitsApp extends StatelessWidget {
       create: (_) => HabitService()..init(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "Karo's Habits",
+        title: 'Karos Habits',
         theme: BullPeakTheme.light(accent: AppAccent.color),
         darkTheme: BullPeakTheme.dark(accent: AppAccent.color),
         themeMode: ThemeMode.system,
@@ -53,31 +53,27 @@ class IntroFlowPage extends StatefulWidget {
 }
 
 class _IntroFlowPageState extends State<IntroFlowPage>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
-  late final String _randomComic;
-
+  late final List<String> _sequence;
   int _step = 0;
 
-  final List<String> _comics = const [
+  static const List<String> _comics = [
     'assets/tegneserie_1.png',
     'assets/tegneserie_2.png',
     'assets/tegneserie_3.png',
   ];
 
-  late final List<String> _sequence;
-
   @override
   void initState() {
     super.initState();
 
-    _randomComic = _comics[Random().nextInt(_comics.length)];
-
+    final randomComic = _comics[Random().nextInt(_comics.length)];
     _sequence = [
-      'assets/emblem.png', // emblem
-      _randomComic, // ÉN tilfeldig stripe
+      'assets/emblem.png',
+      randomComic,
     ];
 
     _fadeController = AnimationController(
@@ -85,8 +81,10 @@ class _IntroFlowPageState extends State<IntroFlowPage>
       duration: const Duration(milliseconds: 300),
     );
 
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _playSequence();
@@ -94,7 +92,9 @@ class _IntroFlowPageState extends State<IntroFlowPage>
   }
 
   Future<void> _playSequence() async {
-    for (int i = 0; i < _sequence.length; i++) {
+    for (var i = 0; i < _sequence.length; i++) {
+      if (!mounted) return;
+
       setState(() => _step = i);
 
       await _fadeController.forward();
@@ -116,6 +116,9 @@ class _IntroFlowPageState extends State<IntroFlowPage>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageWidth = screenWidth * (_step == 0 ? 0.55 : 0.75);
+
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
       body: Center(
@@ -123,15 +126,16 @@ class _IntroFlowPageState extends State<IntroFlowPage>
           opacity: _fadeAnimation,
           child: Image.asset(
             _sequence[_step],
-            width: MediaQuery.of(context).size.width * (_step == 0 ? 0.55 : 0.75),
+            width: imageWidth,
             fit: BoxFit.contain,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
           ),
         ),
       ),
     );
   }
 }
-
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -150,7 +154,6 @@ class _HomeShellState extends State<HomeShell> {
     InfoPage(),
   ];
 
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -164,28 +167,28 @@ class _HomeShellState extends State<HomeShell> {
         },
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.today_outlined),
-            selectedIcon: const Icon(Icons.today),
+            icon: Icon(Icons.today_outlined),
+            selectedIcon: Icon(Icons.today),
             label: l.tabToday,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.list_alt_outlined),
-            selectedIcon: const Icon(Icons.list_alt),
+            icon: Icon(Icons.list_alt_outlined),
+            selectedIcon: Icon(Icons.list_alt),
             label: l.tabHabits,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.insights_outlined),
-            selectedIcon: const Icon(Icons.insights),
+            icon: Icon(Icons.insights_outlined),
+            selectedIcon: Icon(Icons.insights),
             label: l.tabStats,
           ),
           const NavigationDestination(
             icon: Icon(Icons.info_outline),
             selectedIcon: Icon(Icons.info),
-            label: "Info",
+            label: 'Info',
           ),
         ],
-
       ),
     );
   }
 }
+
