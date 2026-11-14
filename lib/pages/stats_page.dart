@@ -7,6 +7,21 @@ import '../l10n/app_localizations.dart';
 class StatsPage extends StatelessWidget {
   const StatsPage({super.key});
 
+  Widget _watermark(BuildContext context) {
+    return Center(
+      child: Opacity(
+        opacity: 0.08,
+        child: Image.asset(
+          Theme.of(context).brightness == Brightness.dark
+              ? 'assets/watermark_dark.png'
+              : 'assets/watermark_light.png',
+          width: MediaQuery.of(context).size.width * 0.75,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -14,34 +29,41 @@ class StatsPage extends StatelessWidget {
     final today = DateTime.now();
     final weeklyData = _computeWeeklyData(service, today);
 
+    final content = weeklyData.totalHabits == 0
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                l.statsNoHabits,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _weeklySummary(context, weeklyData, l),
+                const SizedBox(height: 16),
+                _dailyBars(context, weeklyData, l),
+                const SizedBox(height: 16),
+                _bestHabits(context, weeklyData, l),
+              ],
+            ),
+          );
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.statsTitle),
         ),
-        body: weeklyData.totalHabits == 0
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l.statsNoHabits,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _weeklySummary(context, weeklyData, l),
-                    const SizedBox(height: 16),
-                    _dailyBars(context, weeklyData, l),
-                    const SizedBox(height: 16),
-                    _bestHabits(context, weeklyData, l),
-                  ],
-                ),
-              ),
+        body: Stack(
+          children: [
+            _watermark(context),
+            content,
+          ],
+        ),
       ),
     );
   }
@@ -179,8 +201,7 @@ Widget _dailyBars(BuildContext c, _WeeklyData d, AppLocalizations l) {
                       height: (e.progress * 80) + 4,
                       width: 14,
                       decoration: BoxDecoration(
-                        color:
-                            e.progress == 0 ? Colors.grey : Colors.tealAccent,
+                        color: e.progress == 0 ? Colors.grey : Colors.tealAccent,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -225,3 +246,4 @@ Widget _bestHabits(BuildContext c, _WeeklyData d, AppLocalizations l) {
     ),
   );
 }
+

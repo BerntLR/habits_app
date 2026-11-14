@@ -3,20 +3,36 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../bullpeak/widgets/bp_button.dart';
 import '../services/backup_service.dart';
+import '../services/tipjar_service.dart';
 
-class InfoPage extends StatelessWidget {
+class InfoPage extends StatefulWidget {
   const InfoPage({super.key});
 
+  @override
+  State<InfoPage> createState() => _InfoPageState();
+}
+
+class _InfoPageState extends State<InfoPage> {
   static const String _email = 'post@teambullpeak.com';
   static const String _website = 'https://teambullpeak.com/';
   static const String _privacy = 'https://teambullpeak.com/karos-habits/privacy';
   static const String _support = 'https://teambullpeak.com/home/support';
   static const String _moreApps = 'https://teambullpeak.com/apps';
 
+  final BackupService _backupService = BackupService();
+  final TipJarService _tipJar = TipJarService();
+
+  late final Future<void> _tipInit = _tipJar.init();
+
+  @override
+  void dispose() {
+    _tipJar.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final backupService = BackupService();
 
     return Scaffold(
       appBar: AppBar(
@@ -60,7 +76,7 @@ class InfoPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: BPButton(
-                      onPressed: () async => backupService.exportBackup(context),
+                      onPressed: () async => _backupService.exportBackup(context),
                       label: 'Export data',
                       kind: BPButtonKind.secondary,
                     ),
@@ -68,7 +84,7 @@ class InfoPage extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: BPButton(
-                      onPressed: () async => backupService.importBackup(context),
+                      onPressed: () async => _backupService.importBackup(context),
                       label: 'Import data',
                       kind: BPButtonKind.secondary,
                     ),
@@ -123,27 +139,69 @@ class InfoPage extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
-              BPButton(
-                onPressed: null,
-                label: 'Donate NOK 29',
-                kind: BPButtonKind.secondary,
-              ),
-              const SizedBox(height: 10),
-              BPButton(
-                onPressed: null,
-                label: 'Donate NOK 59',
-                kind: BPButtonKind.secondary,
-              ),
-              const SizedBox(height: 10),
-              BPButton(
-                onPressed: null,
-                label: 'Donate NOK 99',
-                kind: BPButtonKind.secondary,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Donations are not available yet in this build.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
+
+              FutureBuilder<void>(
+                future: _tipInit,
+                builder: (context, snap) {
+                  final loading = snap.connectionState != ConnectionState.done;
+                  final available = _tipJar.donationsAvailable && !loading;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      BPButton(
+                        onPressed: available
+                            ? () async {
+                                await _tipJar.donate(TipJarService.tip29);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Thank you!')),
+                                );
+                              }
+                            : null,
+                        label: 'Donate NOK 29',
+                        kind: BPButtonKind.secondary,
+                      ),
+                      const SizedBox(height: 10),
+                      BPButton(
+                        onPressed: available
+                            ? () async {
+                                await _tipJar.donate(TipJarService.tip59);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Thank you!')),
+                                );
+                              }
+                            : null,
+                        label: 'Donate NOK 59',
+                        kind: BPButtonKind.secondary,
+                      ),
+                      const SizedBox(height: 10),
+                      BPButton(
+                        onPressed: available
+                            ? () async {
+                                await _tipJar.donate(TipJarService.tip99);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Thank you!')),
+                                );
+                              }
+                            : null,
+                        label: 'Donate NOK 99',
+                        kind: BPButtonKind.secondary,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        loading
+                            ? 'Checking donation availability…'
+                            : (available
+                                ? 'Donations are available.'
+                                : 'Donations are not available yet in this build.'),
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

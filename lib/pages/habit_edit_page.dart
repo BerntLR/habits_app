@@ -28,8 +28,8 @@ class _HabitEditPageState extends State<HabitEditPage> {
     3: 'Ons',
     4: 'Tor',
     5: 'Fre',
-    6: 'Lør',
-    7: 'Søn',
+    6: 'Sat',
+    7: 'Sun',
   };
 
   bool get _isEditing => widget.existing != null;
@@ -91,7 +91,7 @@ class _HabitEditPageState extends State<HabitEditPage> {
         return AlertDialog(
           title: const Text('Delete habit?'),
           content: Text(
-            'Er du sikker på at du vil slette "${widget.existing!.name}"?',
+            'Are you sure you want to delete "${widget.existing!.name}"?',
           ),
           actions: [
             TextButton(

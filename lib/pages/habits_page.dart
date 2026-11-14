@@ -26,6 +26,21 @@ class _HabitsPageState extends State<HabitsPage> {
     return locale.languageCode.toLowerCase() == 'en';
   }
 
+  Widget _watermark(BuildContext context) {
+    return Center(
+      child: Opacity(
+        opacity: 0.08,
+        child: Image.asset(
+          Theme.of(context).brightness == Brightness.dark
+              ? 'assets/watermark_dark.png'
+              : 'assets/watermark_light.png',
+          width: MediaQuery.of(context).size.width * 0.75,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final service = context.watch<HabitService>();
@@ -33,6 +48,26 @@ class _HabitsPageState extends State<HabitsPage> {
     final activeHabits = allHabits.where((h) => !h.isArchived).toList();
     final l = AppLocalizations.of(context)!;
     final isEn = _isEnglish(context);
+
+    final content = activeHabits.isEmpty
+        ? BPEmptyState(
+            icon: Icons.list_alt_outlined,
+            title: isEn ? 'No habits yet' : 'Ingen vaner enda',
+            message: l.habitsEmptyText,
+            actionLabel: isEn ? 'Add habit' : 'Add habit',
+            onAction: () => _showAddHabitSheet(context, l),
+          )
+        : ReorderableListView.builder(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+            itemCount: activeHabits.length,
+            onReorder: (oldIndex, newIndex) {
+              context.read<HabitService>().reorderHabits(oldIndex, newIndex);
+            },
+            itemBuilder: (context, index) {
+              final habit = activeHabits[index];
+              return _buildHabitTile(context, habit, l, index);
+            },
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -51,25 +86,12 @@ class _HabitsPageState extends State<HabitsPage> {
           ),
         ],
       ),
-      body: activeHabits.isEmpty
-          ? BPEmptyState(
-              icon: Icons.list_alt_outlined,
-              title: isEn ? 'No habits yet' : 'Ingen vaner enda',
-              message: l.habitsEmptyText,
-              actionLabel: isEn ? 'Add habit' : 'Add habit',
-              onAction: () => _showAddHabitSheet(context, l),
-            )
-          : ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-              itemCount: activeHabits.length,
-              onReorder: (oldIndex, newIndex) {
-                context.read<HabitService>().reorderHabits(oldIndex, newIndex);
-              },
-              itemBuilder: (context, index) {
-                final habit = activeHabits[index];
-                return _buildHabitTile(context, habit, l, index);
-              },
-            ),
+      body: Stack(
+        children: [
+          _watermark(context),
+          content,
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddHabitSheet(context, l),
         child: const Icon(Icons.add),
@@ -86,8 +108,6 @@ class _HabitsPageState extends State<HabitsPage> {
     return BPSwipeActions(
       key: ValueKey('habit_${habit.id}'),
       dismissKey: ValueKey('habit_${habit.id}'),
-      // BPSwipeActions is locked: LEFT => delete, RIGHT => edit.
-      // Here we use LEFT as "delete" (destructive).
       onDelete: () async {
         final confirmed = await showDialog<bool>(
           context: context,
@@ -111,7 +131,6 @@ class _HabitsPageState extends State<HabitsPage> {
           ),
         );
         if (!context.mounted) return;
-
 
         if (confirmed != true) return;
 
@@ -148,10 +167,7 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 
-  Future<void> _showAddHabitSheet(
-    BuildContext context,
-    AppLocalizations l,
-  ) async {
+  Future<void> _showAddHabitSheet(BuildContext context, AppLocalizations l) async {
     final nameController = TextEditingController();
     final targetController = TextEditingController(text: '1');
     final targetFocusNode = FocusNode();
@@ -391,7 +407,6 @@ class _HabitsPageState extends State<HabitsPage> {
                           );
                           if (!context.mounted) return;
 
-
                           if (confirmed != true) return;
 
                           await context.read<HabitService>().archiveHabit(habit.id);
@@ -427,7 +442,6 @@ class _HabitsPageState extends State<HabitsPage> {
                             ),
                           );
                           if (!context.mounted) return;
-
 
                           if (confirmed != true) return;
 
@@ -473,3 +487,4 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 }
+

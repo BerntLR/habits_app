@@ -10,6 +10,7 @@ import 'habits_page.dart';
 import '../bullpeak/widgets/bp_section_header.dart';
 import '../bullpeak/tokens.dart';
 import '../bullpeak/widgets/bp_card.dart';
+
 class TodayPage extends StatefulWidget {
   final DateTime? initialDate;
   final bool showBackButton;
@@ -122,6 +123,7 @@ class _TodayPageState extends State<TodayPage> {
         } catch (_) {}
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
+
     final content = SafeArea(
       child: Column(
         children: [
@@ -134,7 +136,7 @@ class _TodayPageState extends State<TodayPage> {
           Expanded(
             child: habits.isEmpty
                 ? BPEmptyState(
-                    title: isEn ? 'No habits today' : 'Ingen vaner i dag',
+                    title: isEn ? 'No habits today' : 'No habits today',
                     message: isEn
                         ? 'Add habits on the Habits tab.'
                         : 'Add habits on the Habits tab.',
@@ -183,7 +185,7 @@ class _TodayPageState extends State<TodayPage> {
     final isEn = _isEnglish(context);
 
     final subtitle = isToday
-        ? (isEn ? 'Your habits today' : 'Dine vaner i dag')
+        ? (isEn ? 'Your habits today' : 'Your habits today')
         : (isEn ? 'Habits for selected date' : 'Habits for selected date');
 
     return Column(
@@ -305,7 +307,7 @@ class _TodayHabitTile extends StatelessWidget {
           useRootNavigator: true,
           builder: (dCtx) => AlertDialog(
             title: const Text('Delete habit'),
-            content: Text('Vil du slette "${habit.name}"?'),
+            content: Text('Do you want to delete "${habit.name}"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(false),
@@ -323,8 +325,7 @@ class _TodayHabitTile extends StatelessWidget {
         if (confirmed == true) {
           final service = context.read<HabitService>();
           await service.deleteHabit(habit.id);
-          if (context.mounted) {
-          }
+          if (context.mounted) {}
         }
       },
       onEdit: () async {
@@ -336,9 +337,7 @@ class _TodayHabitTile extends StatelessWidget {
             ? null
             : (done ? Icons.check_circle : Icons.radio_button_unchecked),
         title: habit.name,
-        subtitle: habit.type == HabitType.count
-            ? '$count / ${habit.targetValue}'
-            : null,
+        subtitle: habit.type == HabitType.count ? '$count / ${habit.targetValue}' : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -398,7 +397,6 @@ class _TodayHabitTile extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 12),
-
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -416,7 +414,7 @@ class _TodayHabitTile extends StatelessWidget {
                         useRootNavigator: true,
                         builder: (dCtx) => AlertDialog(
                           title: const Text('Archive habit'),
-                          content: Text('Vil du arkivere "${habit.name}"?'),
+                          content: Text('Do you want to archive "${habit.name}"?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(false),
@@ -463,7 +461,6 @@ class _TodayHabitTile extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 12),
             ],
           ),
@@ -472,11 +469,7 @@ class _TodayHabitTile extends StatelessWidget {
     );
   }
 
-  void _handleTap(
-    BuildContext context,
-    HabitService service,
-    bool done,
-  ) {
+  void _handleTap(BuildContext context, HabitService service, bool done) {
     if (habit.type == HabitType.boolean) {
       service.toggleHabit(habit.id, date);
     } else {
@@ -484,15 +477,11 @@ class _TodayHabitTile extends StatelessWidget {
     }
   }
 
-  Widget _buildCountControls(
-    BuildContext context,
-    HabitService service,
-    int count,
-  ) {
+  Widget _buildCountControls(BuildContext context, HabitService service, int count) {
     final isEn = _isEnglish(context);
 
-    final resetTooltip = isEn ? 'Reset this day' : 'Nullstill denne dagen';
-    final incTooltip = isEn ? 'Increase by 1' : 'Ok antallet med 1';
+    final resetTooltip = isEn ? 'Reset this day' : 'Reset this day';
+    final incTooltip = isEn ? 'Increase by 1' : 'Increase by 1';
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -501,19 +490,13 @@ class _TodayHabitTile extends StatelessWidget {
           icon: const Icon(Icons.remove),
           splashRadius: 20,
           tooltip: resetTooltip,
-          onPressed: count > 0
-              ? () {
-                  service.resetForDate(habit.id, date);
-                }
-              : null,
+          onPressed: count > 0 ? () => service.resetForDate(habit.id, date) : null,
         ),
         IconButton(
           icon: const Icon(Icons.add),
           splashRadius: 20,
           tooltip: incTooltip,
-          onPressed: () {
-            service.incrementCount(habit.id, date);
-          },
+          onPressed: () => service.incrementCount(habit.id, date),
         ),
       ],
     );
@@ -594,12 +577,9 @@ class _StreakChipState extends State<_StreakChip> {
   Color _colorForStreak(BuildContext context, int streak) {
     final scheme = Theme.of(context).colorScheme;
     if (streak <= 0) return scheme.onSurfaceVariant;
-    if (streak <= 3) {
-      return Colors.amberAccent.shade200;
-    }
-    if (streak <= 14) {
-      return Colors.deepOrangeAccent;
-    }
+    if (streak <= 3) return Colors.amberAccent.shade200;
+    if (streak <= 14) return Colors.deepOrangeAccent;
     return Colors.greenAccent.shade400;
   }
 }
+

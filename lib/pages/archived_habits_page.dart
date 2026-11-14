@@ -29,7 +29,7 @@ class ArchivedHabitsPage extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    'Ingen arkiverte vaner ennå.\n'
+                    'No archived habits yet.\n'
                     'Archive a habit from the Habits tab to clean up the list.',
                     textAlign: TextAlign.center,
                   ),
