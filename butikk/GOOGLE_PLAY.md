@@ -102,8 +102,7 @@ Skjermbildene er på engelsk og brukes for begge språk.
 ### Personvernerklæring
 Lim inn: `https://teambullpeak.com/karos-habits/privacy`
 
-> **Forslag til endring på nettsiden:** Under «Third-party services» står det «None». Siden TipJar finnes, bør det stå noe slikt som:
-> *"Optional tips are processed by Google Play and the Apple App Store. We do not receive or store your payment details."*
+> Personvernsiden er oppdatert 14.11.2026 med avsnitt om backup og tips (App Store / Google Play).
 
 ### Annonser
 **Nei**, appen inneholder ikke annonser.
