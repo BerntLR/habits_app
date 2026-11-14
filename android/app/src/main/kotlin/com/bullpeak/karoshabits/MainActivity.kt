@@ -1,4 +1,4 @@
-package com.example.habits_app
+package com.bullpeak.karoshabits
 
 import io.flutter.embedding.android.FlutterActivity
 
