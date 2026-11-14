@@ -30,6 +30,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   generate: true
@@ -48,3 +49,12 @@ flutter_native_splash:
     color: "#000000"
     image: assets/ikon_android12.png
 
+
+# Android launcher icon (regenerate: dart run flutter_launcher_icons)
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "assets/launcher/icon.png"
+  adaptive_icon_background: "#228D93"
+  adaptive_icon_foreground: "assets/launcher/foreground.png"
+  min_sdk_android: 21

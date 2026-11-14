@@ -6,6 +6,7 @@ class BPListTile extends StatelessWidget {
     super.key,
     this.onTap,
     this.leading,
+    this.leadingColor,
     required this.title,
     this.subtitle,
     this.trailing,
@@ -13,6 +14,7 @@ class BPListTile extends StatelessWidget {
 
   final VoidCallback? onTap;
   final IconData? leading;
+  final Color? leadingColor;
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -29,7 +31,7 @@ class BPListTile extends StatelessWidget {
         child: Row(
           children: [
             if (leading != null) ...[
-              Icon(leading, color: cs.onSurfaceVariant),
+              Icon(leading, color: leadingColor ?? cs.onSurfaceVariant),
               const SizedBox(width: BPSpacing.m),
             ],
             Expanded(

@@ -24,6 +24,12 @@ class TipJarService {
   String? _lastError;
   String? get lastError => _lastError;
 
+  /// Called when a donation has actually gone through.
+  void Function()? onPurchased;
+
+  /// Localized store price (e.g. "NOK 29,00"), or null before products load.
+  String? priceFor(String productId) => _products[productId]?.price;
+
   Future<void> init() async {
     if (_ready) return;
 
@@ -103,6 +109,9 @@ class TipJarService {
       case PurchaseStatus.restored:
         if (purchase.pendingCompletePurchase) {
           await _iap.completePurchase(purchase);
+        }
+        if (purchase.status == PurchaseStatus.purchased) {
+          onPurchased?.call();
         }
         return;
     }

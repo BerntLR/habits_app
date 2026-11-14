@@ -15,7 +15,8 @@ class InfoPage extends StatefulWidget {
 class _InfoPageState extends State<InfoPage> {
   static const String _email = 'post@teambullpeak.com';
   static const String _website = 'https://teambullpeak.com/';
-  static const String _privacy = 'https://teambullpeak.com/karos-habits/privacy';
+  static const String _privacy =
+      'https://teambullpeak.com/karos-habits/privacy';
   static const String _support = 'https://teambullpeak.com/home/support';
   static const String _moreApps = 'https://teambullpeak.com/apps';
 
@@ -23,6 +24,17 @@ class _InfoPageState extends State<InfoPage> {
   final TipJarService _tipJar = TipJarService();
 
   late final Future<void> _tipInit = _tipJar.init();
+
+  @override
+  void initState() {
+    super.initState();
+    _tipJar.onPurchased = () {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thank you!')),
+      );
+    };
+  }
 
   @override
   void dispose() {
@@ -65,7 +77,6 @@ class _InfoPageState extends State<InfoPage> {
                 'Track habits day by day. Review your history in Stats.',
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
-
               const SizedBox(height: 20),
               const Text(
                 'Backup',
@@ -76,7 +87,8 @@ class _InfoPageState extends State<InfoPage> {
                 children: [
                   Expanded(
                     child: BPButton(
-                      onPressed: () async => _backupService.exportBackup(context),
+                      onPressed: () async =>
+                          _backupService.exportBackup(context),
                       label: 'Export data',
                       kind: BPButtonKind.secondary,
                     ),
@@ -84,7 +96,8 @@ class _InfoPageState extends State<InfoPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: BPButton(
-                      onPressed: () async => _backupService.importBackup(context),
+                      onPressed: () async =>
+                          _backupService.importBackup(context),
                       label: 'Import data',
                       kind: BPButtonKind.secondary,
                     ),
@@ -96,7 +109,6 @@ class _InfoPageState extends State<InfoPage> {
                 'Export creates a JSON backup file. Import replaces your current data.',
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
-
               const SizedBox(height: 24),
               const Text(
                 'Links',
@@ -132,14 +144,12 @@ class _InfoPageState extends State<InfoPage> {
                 label: 'More from BullPeak',
                 kind: BPButtonKind.secondary,
               ),
-
               const SizedBox(height: 24),
               const Text(
                 'Support the developer',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
-
               FutureBuilder<void>(
                 future: _tipInit,
                 builder: (context, snap) {
@@ -151,43 +161,28 @@ class _InfoPageState extends State<InfoPage> {
                     children: [
                       BPButton(
                         onPressed: available
-                            ? () async {
-                                await _tipJar.donate(TipJarService.tip29);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Thank you!')),
-                                );
-                              }
+                            ? () => _tipJar.donate(TipJarService.tip29)
                             : null,
-                        label: 'Donate NOK 29',
+                        label:
+                            'Donate ${_tipJar.priceFor(TipJarService.tip29) ?? 'NOK 29'}',
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
                       BPButton(
                         onPressed: available
-                            ? () async {
-                                await _tipJar.donate(TipJarService.tip59);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Thank you!')),
-                                );
-                              }
+                            ? () => _tipJar.donate(TipJarService.tip59)
                             : null,
-                        label: 'Donate NOK 59',
+                        label:
+                            'Donate ${_tipJar.priceFor(TipJarService.tip59) ?? 'NOK 59'}',
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
                       BPButton(
                         onPressed: available
-                            ? () async {
-                                await _tipJar.donate(TipJarService.tip99);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Thank you!')),
-                                );
-                              }
+                            ? () => _tipJar.donate(TipJarService.tip99)
                             : null,
-                        label: 'Donate NOK 99',
+                        label:
+                            'Donate ${_tipJar.priceFor(TipJarService.tip99) ?? 'NOK 99'}',
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
@@ -232,4 +227,3 @@ class _InfoPageState extends State<InfoPage> {
     }
   }
 }
-

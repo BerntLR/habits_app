@@ -289,9 +289,8 @@ class _TodayHabitTile extends StatelessWidget {
       },
       child: BPListTile(
         onTap: () => _handleTap(context, service, done),
-        leading: habit.type == HabitType.boolean
-            ? null
-            : (done ? Icons.check_circle : Icons.radio_button_unchecked),
+        leading: done ? Icons.check_circle : Icons.radio_button_unchecked,
+        leadingColor: done ? Theme.of(context).colorScheme.primary : null,
         title: habit.name,
         subtitle: habit.type == HabitType.count ? '$count / ${habit.targetValue}' : null,
         trailing: Row(
