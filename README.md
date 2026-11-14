@@ -35,4 +35,20 @@ flutter test
 flutter run
 ```
 
-Release: `flutter build ipa` / `flutter build appbundle`.
+## Release
+
+- iOS: `flutter build ipa`
+- Android: `flutter build appbundle`
+
+### Android signing (Google Play)
+
+The release build is signed with the upload key from `android/key.properties`.
+Without that file it falls back to the debug key, and Google Play will reject the build.
+The key and passwords are never stored in git.
+
+1. Create the upload key (once). `keytool` asks for passwords, so keep them in a password manager:
+   ```bash
+   keytool -genkey -v -keystore android/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+2. Copy `android/key.properties.example` to `android/key.properties` and fill in the passwords.
+3. Back up `upload-keystore.jks` and the passwords outside the Mac. Without them, updates can only be uploaded after a key reset in Play Console.
