@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../tokens.dart';
+
 class BPSwipeActions extends StatelessWidget {
   const BPSwipeActions({
     super.key,
@@ -14,10 +16,12 @@ class BPSwipeActions extends StatelessWidget {
   final Future<void> Function() onEdit;
   final Key? dismissKey;
 
+  /// Karo standard: swipe right = edit (blue), swipe left = delete (red).
+  static const Color editColor = Color(0xFF1E88E5);
+  static const Color deleteColor = Color(0xFFD32F2F);
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Dismissible(
       key: dismissKey ?? key ?? UniqueKey(),
       dismissThresholds: const {
@@ -35,19 +39,30 @@ class BPSwipeActions extends StatelessWidget {
         }
         return false;
       },
-      background: Container(
-        color: cs.primary.withValues(alpha: 0.12),
+      background: _background(
+        color: editColor,
+        icon: Icons.edit_outlined,
         alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 16),
-        child: Icon(Icons.edit_outlined, color: cs.onSurface),
       ),
-      secondaryBackground: Container(
-        color: cs.error,
+      secondaryBackground: _background(
+        color: deleteColor,
+        icon: Icons.delete_outline,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: Icon(Icons.delete_outline, color: cs.onError),
       ),
       child: child,
+    );
+  }
+
+  Widget _background({
+    required Color color,
+    required IconData icon,
+    required Alignment alignment,
+  }) {
+    return Container(
+      decoration: BoxDecoration(color: color, borderRadius: BPRadius.card),
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Icon(icon, color: Colors.white),
     );
   }
 }

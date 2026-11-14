@@ -1,86 +1,186 @@
 {
+  "@@locale": "en",
   "tabToday": "Today",
   "tabHabits": "Habits",
   "tabStats": "Stats",
-
   "habitsTitle": "Habits",
   "habitsArchiveButtonTooltip": "Archive",
-  "habitsEmptyText": "No habits yet. Tap + to add one.",
-
+  "habitsEmptyText": "Tap + to add your first habit.",
   "newHabitTitle": "New habit",
   "editHabitTitle": "Edit habit",
-
   "fieldNameLabel": "Name",
   "fieldTypeLabel": "Type",
   "targetPerDayLabel": "Target per day",
-
   "habitTypeBoolean": "Yes/No",
   "habitTypeCount": "Count",
-
   "booleanHabitSubtitle": "Complete once per day",
   "countHabitSubtitle": "{target} per day",
   "@countHabitSubtitle": {
     "placeholders": {
-      "target": { "type": "int" }
+      "target": {
+        "type": "int"
+      }
     }
   },
-
   "habitNeedsName": "Please enter a name.",
-
   "cancel": "Cancel",
   "save": "Save",
-
   "archive": "Archive",
   "buttonArchive": "Archive",
   "archiveHabitTitle": "Archive habit",
   "archiveHabitMessage": "Do you want to archive \"{name}\"?",
   "@archiveHabitMessage": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "delete": "Delete",
   "deleteHabitTitle": "Delete habit",
   "deleteHabitMessage": "Do you want to delete \"{name}\"?",
   "@deleteHabitMessage": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "buttonSeeStats": "See stats",
-
   "statsTitle": "Statistics",
   "statsNoHabits": "No habits yet. Add habits under \"Habits\".",
   "statsLast7Days": "This week (last 7 days)",
   "statsAverage": "{percent}% average progress",
   "@statsAverage": {
     "placeholders": {
-      "percent": { "type": "int" }
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "statsActiveHabits": "{count} active habits",
   "@statsActiveHabits": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "statsDaysTitle": "Days last 7 days",
   "statsBestHabits": "Best habits this week",
-
   "habitStatsShowMonth": "Show month",
   "habitStatsShowYear": "Show year",
   "habitStatsTapDay": "Tap a day to open it",
   "habitStatsYearTitle": "Year {year}",
   "@habitStatsYearTitle": {
     "placeholders": {
-      "year": { "type": "int" }
+      "year": {
+        "type": "int"
+      }
     }
   },
-
   "legendNone": "None",
   "legendPartial": "Partial",
-  "legendFull": "Completed"
+  "legendFull": "Completed",
+  "tabInfo": "Info",
+  "dateToday": "Today",
+  "dateYesterday": "Yesterday",
+  "dateTomorrow": "Tomorrow",
+  "todaySubtitle": "Your habits today",
+  "selectedDateSubtitle": "Habits for selected date",
+  "previousDay": "Previous day",
+  "nextDay": "Next day",
+  "todayEmptyTitle": "No habits today",
+  "todayEmptyText": "Add habits on the Habits tab.",
+  "addHabit": "Add habit",
+  "habitsEmptyTitle": "No habits yet",
+  "todaySummary": "Completed {done} of {total} habits",
+  "@todaySummary": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "todayTip": "Tip: Tap a habit to mark it as done. For count habits, use + and -.",
+  "resetDay": "Reset this day",
+  "increaseByOne": "Increase by 1",
+  "archivedTitle": "Archived habits",
+  "archivedEmpty": "No archived habits yet.\nArchive a habit from the Habits tab to clean up the list.",
+  "restore": "Restore",
+  "habitRestored": "Restored: {name}",
+  "@habitRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitDeleted": "Deleted: {name}",
+  "@habitDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitArchived": "Archived: {name}",
+  "@habitArchived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitSaved": "Saved: {name}",
+  "@habitSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePermanentMessage": "Delete \"{name}\" permanently? Its history will be deleted too.",
+  "@deletePermanentMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "infoIntro": "Track habits day by day. Review your history in Stats.",
+  "backupTitle": "Backup",
+  "exportData": "Export data",
+  "importData": "Import data",
+  "backupHint": "Export creates a JSON backup file. Import replaces your current data.",
+  "importConfirmTitle": "Replace all data?",
+  "importConfirmMessage": "Importing replaces all habits and history on this phone with the content of the backup file.",
+  "importButton": "Import",
+  "importSuccess": "Backup imported.",
+  "importFailed": "Could not read the backup file. Nothing was changed.",
+  "exportFailed": "Could not export the data.",
+  "linksTitle": "Links",
+  "linkLetter": "Send me a letter",
+  "linkWebsite": "Website",
+  "linkPrivacy": "Privacy policy",
+  "linkSupport": "Support",
+  "linkMoreApps": "More from BullPeak",
+  "supportTitle": "Support the developer",
+  "donate": "Donate {price}",
+  "@donate": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "tipsChecking": "Checking if tips are available...",
+  "tipsAvailable": "Tips are available. Thank you for your support!",
+  "tipsUnavailable": "Tips are not available right now.",
+  "thankYou": "Thank you!",
+  "couldNotOpenLink": "Could not open the link",
+  "couldNotOpenMail": "Could not open the mail app"
 }
-

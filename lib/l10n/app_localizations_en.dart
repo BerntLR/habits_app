@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get habitsArchiveButtonTooltip => 'Archive';
 
   @override
-  String get habitsEmptyText => 'No habits yet. Tap + to add one.';
+  String get habitsEmptyText => 'Tap + to add your first habit.';
 
   @override
   String get newHabitTitle => 'New habit';
@@ -139,4 +139,171 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get legendFull => 'Completed';
+
+  @override
+  String get tabInfo => 'Info';
+
+  @override
+  String get dateToday => 'Today';
+
+  @override
+  String get dateYesterday => 'Yesterday';
+
+  @override
+  String get dateTomorrow => 'Tomorrow';
+
+  @override
+  String get todaySubtitle => 'Your habits today';
+
+  @override
+  String get selectedDateSubtitle => 'Habits for selected date';
+
+  @override
+  String get previousDay => 'Previous day';
+
+  @override
+  String get nextDay => 'Next day';
+
+  @override
+  String get todayEmptyTitle => 'No habits today';
+
+  @override
+  String get todayEmptyText => 'Add habits on the Habits tab.';
+
+  @override
+  String get addHabit => 'Add habit';
+
+  @override
+  String get habitsEmptyTitle => 'No habits yet';
+
+  @override
+  String todaySummary(int done, int total) {
+    return 'Completed $done of $total habits';
+  }
+
+  @override
+  String get todayTip =>
+      'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
+
+  @override
+  String get resetDay => 'Reset this day';
+
+  @override
+  String get increaseByOne => 'Increase by 1';
+
+  @override
+  String get archivedTitle => 'Archived habits';
+
+  @override
+  String get archivedEmpty =>
+      'No archived habits yet.\nArchive a habit from the Habits tab to clean up the list.';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String habitRestored(String name) {
+    return 'Restored: $name';
+  }
+
+  @override
+  String habitDeleted(String name) {
+    return 'Deleted: $name';
+  }
+
+  @override
+  String habitArchived(String name) {
+    return 'Archived: $name';
+  }
+
+  @override
+  String habitSaved(String name) {
+    return 'Saved: $name';
+  }
+
+  @override
+  String deletePermanentMessage(String name) {
+    return 'Delete \"$name\" permanently? Its history will be deleted too.';
+  }
+
+  @override
+  String get infoIntro =>
+      'Track habits day by day. Review your history in Stats.';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get exportData => 'Export data';
+
+  @override
+  String get importData => 'Import data';
+
+  @override
+  String get backupHint =>
+      'Export creates a JSON backup file. Import replaces your current data.';
+
+  @override
+  String get importConfirmTitle => 'Replace all data?';
+
+  @override
+  String get importConfirmMessage =>
+      'Importing replaces all habits and history on this phone with the content of the backup file.';
+
+  @override
+  String get importButton => 'Import';
+
+  @override
+  String get importSuccess => 'Backup imported.';
+
+  @override
+  String get importFailed =>
+      'Could not read the backup file. Nothing was changed.';
+
+  @override
+  String get exportFailed => 'Could not export the data.';
+
+  @override
+  String get linksTitle => 'Links';
+
+  @override
+  String get linkLetter => 'Send me a letter';
+
+  @override
+  String get linkWebsite => 'Website';
+
+  @override
+  String get linkPrivacy => 'Privacy policy';
+
+  @override
+  String get linkSupport => 'Support';
+
+  @override
+  String get linkMoreApps => 'More from BullPeak';
+
+  @override
+  String get supportTitle => 'Support the developer';
+
+  @override
+  String donate(String price) {
+    return 'Donate $price';
+  }
+
+  @override
+  String get tipsChecking => 'Checking if tips are available...';
+
+  @override
+  String get tipsAvailable => 'Tips are available. Thank you for your support!';
+
+  @override
+  String get tipsUnavailable => 'Tips are not available right now.';
+
+  @override
+  String get thankYou => 'Thank you!';
+
+  @override
+  String get couldNotOpenLink => 'Could not open the link';
+
+  @override
+  String get couldNotOpenMail => 'Could not open the mail app';
 }

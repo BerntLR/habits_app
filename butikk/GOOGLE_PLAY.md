@@ -11,9 +11,9 @@ Grafikk ligger i `butikk/play/`.
 | --- | --- |
 | Navn | **Karos Habits** |
 | Pakkenavn | `com.bullpeak.karoshabits` |
-| Versjon | 1.0.1 (versionCode 12) |
+| Versjon | 1.0.2 (versionCode 13) |
 | Kategori | Produktivitet (alternativ: Helse og trening) |
-| Språk | **English (United States)** – appen er bare på engelsk |
+| Språk | **English (United States)** som standard + **Norsk** – appen følger telefonens språk |
 | Pris | Gratis. Kjøp i appen: ja (frivillig TipJar). Ingen reklame |
 | Personvern-URL | https://teambullpeak.com/karos-habits/privacy |
 | Nettsted | https://teambullpeak.com/ |
@@ -36,9 +36,6 @@ Grafikk ligger i `butikk/play/`.
 > • Yes/no habits – "Read 20 minutes", "Stretch", "No phone after 22:00"
 > • Count habits with a daily goal – "Drink 8 glasses of water", "Walk 10,000 steps"
 >
-> **Only on the days you choose**
-> Pick which weekdays each habit is active. Streaks only count the days that matter.
->
 > **See your progress**
 > • Today view with a clear progress bar
 > • Weekly overview and your best habits
@@ -47,6 +44,8 @@ Grafikk ligger i `butikk/play/`.
 >
 > **Private by design**
 > No account, no login, no ads, no tracking. Your data stays on your phone. Export a backup file whenever you like, and import it on a new phone.
+>
+> Available in English and Norwegian.
 >
 > Made by Team BullPeak, starring Karo.
 
@@ -58,7 +57,43 @@ Grafikk ligger i `butikk/play/`.
 | Feature graphic 1024×500 | `play/feature_graphic_1024x500.png` |
 | Telefon-skjermbilder (2–8) | `play/skjerm_1…4_1080x1920.png` |
 
+**KI-merking:** Ikonet, Karo-figuren og tegneseriene er laget med KI (ChatGPT). Når Play Console spør om KI-generert innhold, svarer du **Ja**.
+
 Nettbrett-skjermbilder er valgfritt. De trengs bare hvis du vil at appen skal fremheves for nettbrett.
+
+---
+
+## Butikktekster (norsk – ekstra språk)
+
+Legg til under *Hovedoppføring i butikken → Administrer oversettelser → Norsk*.
+
+**Appnavn (maks 30)**
+> Karos Habits
+
+**Kort beskrivelse (maks 80)** – 68 tegn
+> Følg vanene dine hver dag, bygg rekker og se fremgangen uke for uke.
+
+**Full beskrivelse (maks 4000)**
+> Karos Habits er en enkel og vennlig vanesporer. Legg til vanene som betyr noe for deg, kryss dem av hver dag og se rekkene vokse.
+>
+> **To typer vaner**
+> • Ja/nei-vaner – «Lese 20 minutter», «Tøye ut», «Ingen mobil etter 22»
+> • Tellevaner med dagsmål – «Drikke 8 glass vann», «Gå 10 000 skritt»
+>
+> **Se fremgangen din**
+> • I dag-visning med tydelig fremdriftslinje
+> • Ukeoversikt og dine beste vaner
+> • Måneds- og årsvisning for hver vane
+> • Rekker som holder motivasjonen oppe
+>
+> **Personvern først**
+> Ingen konto, ingen innlogging, ingen reklame, ingen sporing. Dataene blir på telefonen din. Eksporter en sikkerhetskopi når du vil, og importer den på en ny telefon.
+>
+> Finnes på norsk og engelsk.
+>
+> Laget av Team BullPeak, med Karo i hovedrollen.
+
+Skjermbildene er på engelsk og brukes for begge språk.
 
 ---
 

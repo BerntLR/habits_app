@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../bullpeak/widgets/bp_snackbar.dart';
+import '../l10n/app_localizations.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
 
@@ -9,27 +11,23 @@ class ArchivedHabitsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final habitService = context.watch<HabitService>();
 
-    final allHabits = habitService.habits;
-    final archived = allHabits.where((h) => h.isArchived).toList()
-      ..sort((a, b) {
-        // Sorter alfabetisk som fallback.
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+    final archived = habitService.habits.where((h) => h.isArchived).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Archived habits'),
+        title: Text(l.archivedTitle),
       ),
       body: SafeArea(
         child: archived.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Text(
-                    'No archived habits yet.\n'
-                    'Archive a habit from the Habits tab to clean up the list.',
+                    l.archivedEmpty,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -38,10 +36,8 @@ class ArchivedHabitsPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
                 itemCount: archived.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (context, index) {
-                  final habit = archived[index];
-                  return _ArchivedHabitTile(habit: habit);
-                },
+                itemBuilder: (context, index) =>
+                    _ArchivedHabitTile(habit: archived[index]),
               ),
       ),
     );
@@ -55,14 +51,12 @@ class _ArchivedHabitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final habitService = context.read<HabitService>();
 
-    String subtitle;
-    if (habit.type == HabitType.count) {
-      subtitle = 'Telle-vane • mal per dag: ${habit.targetValue}';
-    } else {
-      subtitle = 'Boolsk vane';
-    }
+    final subtitle = habit.type == HabitType.count
+        ? l.countHabitSubtitle(habit.targetValue)
+        : l.booleanHabitSubtitle;
 
     return Card(
       elevation: 1,
@@ -76,39 +70,31 @@ class _ArchivedHabitTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'Restore',
+              tooltip: l.restore,
               icon: const Icon(Icons.unarchive_outlined),
-              onPressed: () {
-                // Vi antar at archiveHabit toggler arkivstatus.
-                habitService.archiveHabit(habit.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Vane gjenopprettet: ${habit.name}'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+              onPressed: () async {
+                await habitService.unarchiveHabit(habit.id);
+                if (!context.mounted) return;
+                BPSnackbar.success(context, l.habitRestored(habit.name));
               },
             ),
             IconButton(
-              tooltip: 'Delete habit',
+              tooltip: l.deleteHabitTitle,
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
                 final ok = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        title: const Text('Delete habit?'),
-                        content: Text(
-                          'Vil du slette vanen "${habit.name}" permanent?\n'
-                          'Historikk for denne vanen vil ogsa forsvinne.',
-                        ),
+                        title: Text(l.deleteHabitTitle),
+                        content: Text(l.deletePermanentMessage(habit.name)),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(false),
-                            child: const Text('Cancel'),
+                            child: Text(l.cancel),
                           ),
                           FilledButton(
                             onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text('Delete'),
+                            child: Text(l.delete),
                           ),
                         ],
                       ),
@@ -117,15 +103,9 @@ class _ArchivedHabitTile extends StatelessWidget {
 
                 if (!ok) return;
 
+                await habitService.deleteHabit(habit.id);
                 if (!context.mounted) return;
-
-                habitService.deleteHabit(habit.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Vane slettet: ${habit.name}'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                BPSnackbar.success(context, l.habitDeleted(habit.name));
               },
             ),
           ],

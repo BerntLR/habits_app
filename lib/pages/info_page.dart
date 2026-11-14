@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../bullpeak/widgets/bp_button.dart';
+import '../l10n/app_localizations.dart';
 import '../services/backup_service.dart';
 import '../services/tipjar_service.dart';
 
@@ -31,7 +32,7 @@ class _InfoPageState extends State<InfoPage> {
     _tipJar.onPurchased = () {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thank you!')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.thankYou)),
       );
     };
   }
@@ -45,10 +46,11 @@ class _InfoPageState extends State<InfoPage> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Info'),
+        title: Text(l.tabInfo),
         centerTitle: true,
       ),
       body: Stack(
@@ -74,13 +76,14 @@ class _InfoPageState extends State<InfoPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Track habits day by day. Review your history in Stats.',
+                l.infoIntro,
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Backup',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              Text(
+                l.backupTitle,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
               Row(
@@ -89,7 +92,7 @@ class _InfoPageState extends State<InfoPage> {
                     child: BPButton(
                       onPressed: () async =>
                           _backupService.exportBackup(context),
-                      label: 'Export data',
+                      label: l.exportData,
                       kind: BPButtonKind.secondary,
                     ),
                   ),
@@ -98,7 +101,7 @@ class _InfoPageState extends State<InfoPage> {
                     child: BPButton(
                       onPressed: () async =>
                           _backupService.importBackup(context),
-                      label: 'Import data',
+                      label: l.importData,
                       kind: BPButtonKind.secondary,
                     ),
                   ),
@@ -106,48 +109,50 @@ class _InfoPageState extends State<InfoPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Export creates a JSON backup file. Import replaces your current data.',
+                l.backupHint,
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Links',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              Text(
+                l.linksTitle,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
               BPButton(
                 onPressed: () => _sendMail(context),
-                label: 'Send me a letter',
+                label: l.linkLetter,
                 kind: BPButtonKind.secondary,
               ),
               const SizedBox(height: 10),
               BPButton(
                 onPressed: () => _openLink(context, _website),
-                label: 'Website',
+                label: l.linkWebsite,
                 kind: BPButtonKind.secondary,
               ),
               const SizedBox(height: 10),
               BPButton(
                 onPressed: () => _openLink(context, _privacy),
-                label: 'Privacy policy',
+                label: l.linkPrivacy,
                 kind: BPButtonKind.secondary,
               ),
               const SizedBox(height: 10),
               BPButton(
                 onPressed: () => _openLink(context, _support),
-                label: 'Support',
+                label: l.linkSupport,
                 kind: BPButtonKind.secondary,
               ),
               const SizedBox(height: 10),
               BPButton(
                 onPressed: () => _openLink(context, _moreApps),
-                label: 'More from BullPeak',
+                label: l.linkMoreApps,
                 kind: BPButtonKind.secondary,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Support the developer',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              Text(
+                l.supportTitle,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
               FutureBuilder<void>(
@@ -163,8 +168,8 @@ class _InfoPageState extends State<InfoPage> {
                         onPressed: available
                             ? () => _tipJar.donate(TipJarService.tip29)
                             : null,
-                        label:
-                            'Donate ${_tipJar.priceFor(TipJarService.tip29) ?? 'NOK 29'}',
+                        label: l.donate(
+                            _tipJar.priceFor(TipJarService.tip29) ?? 'NOK 29'),
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
@@ -172,8 +177,8 @@ class _InfoPageState extends State<InfoPage> {
                         onPressed: available
                             ? () => _tipJar.donate(TipJarService.tip59)
                             : null,
-                        label:
-                            'Donate ${_tipJar.priceFor(TipJarService.tip59) ?? 'NOK 59'}',
+                        label: l.donate(
+                            _tipJar.priceFor(TipJarService.tip59) ?? 'NOK 59'),
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
@@ -181,17 +186,15 @@ class _InfoPageState extends State<InfoPage> {
                         onPressed: available
                             ? () => _tipJar.donate(TipJarService.tip99)
                             : null,
-                        label:
-                            'Donate ${_tipJar.priceFor(TipJarService.tip99) ?? 'NOK 99'}',
+                        label: l.donate(
+                            _tipJar.priceFor(TipJarService.tip99) ?? 'NOK 99'),
                         kind: BPButtonKind.secondary,
                       ),
                       const SizedBox(height: 10),
                       Text(
                         loading
-                            ? 'Checking donation availability…'
-                            : (available
-                                ? 'Donations are available.'
-                                : 'Donations are not available yet in this build.'),
+                            ? l.tipsChecking
+                            : (available ? l.tipsAvailable : l.tipsUnavailable),
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
                     ],
@@ -210,7 +213,7 @@ class _InfoPageState extends State<InfoPage> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open link')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.couldNotOpenLink)),
       );
     }
   }
@@ -222,7 +225,7 @@ class _InfoPageState extends State<InfoPage> {
     if (!await launchUrl(uri)) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open mail app')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.couldNotOpenMail)),
       );
     }
   }

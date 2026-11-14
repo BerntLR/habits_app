@@ -46,9 +46,9 @@ class _HabitsPageState extends State<HabitsPage> {
     final content = activeHabits.isEmpty
         ? BPEmptyState(
             icon: Icons.list_alt_outlined,
-            title: 'No habits yet',
+            title: l.habitsEmptyTitle,
             message: l.habitsEmptyText,
-            actionLabel: 'Add habit',
+            actionLabel: l.addHabit,
             onAction: () => _showAddHabitSheet(context, l),
           )
         : ReorderableListView.builder(
@@ -131,7 +131,7 @@ class _HabitsPageState extends State<HabitsPage> {
         await context.read<HabitService>().deleteHabit(habit.id);
         if (!context.mounted) return;
 
-        BPSnackbar.success(context, '${l.delete}: ${habit.name}');
+        BPSnackbar.success(context, l.habitDeleted(habit.name));
       },
       onEdit: () => _showEditHabitSheet(context, habit, l),
       child: BPCard(
@@ -161,7 +161,8 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 
-  Future<void> _showAddHabitSheet(BuildContext context, AppLocalizations l) async {
+  Future<void> _showAddHabitSheet(
+      BuildContext context, AppLocalizations l) async {
     final nameController = TextEditingController();
     final targetController = TextEditingController(text: '1');
     final targetFocusNode = FocusNode();
@@ -223,10 +224,12 @@ class _HabitsPageState extends State<HabitsPage> {
                               selectedType = value;
                             });
                             if (value == HabitType.count) {
-                              Future.delayed(const Duration(milliseconds: 80), () {
+                              Future.delayed(const Duration(milliseconds: 80),
+                                  () {
                                 if (targetFocusNode.canRequestFocus) {
                                   if (!ctx.mounted) return;
-                                  FocusScope.of(ctx).requestFocus(targetFocusNode);
+                                  FocusScope.of(ctx)
+                                      .requestFocus(targetFocusNode);
                                 }
                               });
                             } else {
@@ -273,7 +276,8 @@ class _HabitsPageState extends State<HabitsPage> {
 
                           int? target;
                           if (selectedType == HabitType.count) {
-                            final t = int.tryParse(targetController.text.trim());
+                            final t =
+                                int.tryParse(targetController.text.trim());
                             target = (t == null || t <= 0) ? 1 : t;
                           }
 
@@ -286,7 +290,7 @@ class _HabitsPageState extends State<HabitsPage> {
                           if (!context.mounted) return;
 
                           Navigator.of(context).pop();
-                          BPSnackbar.success(context, '${l.save}: $name');
+                          BPSnackbar.success(context, l.habitSaved(name));
                         },
                       ),
                     ],
@@ -389,7 +393,8 @@ class _HabitsPageState extends State<HabitsPage> {
                                 BPButton(
                                   label: l.cancel,
                                   kind: BPButtonKind.tertiary,
-                                  onPressed: () => Navigator.of(dCtx).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(dCtx).pop(false),
                                 ),
                                 BPButton(
                                   label: l.delete,
@@ -403,11 +408,14 @@ class _HabitsPageState extends State<HabitsPage> {
 
                           if (confirmed != true) return;
 
-                          await context.read<HabitService>().archiveHabit(habit.id);
+                          await context
+                              .read<HabitService>()
+                              .deleteHabit(habit.id);
                           if (!context.mounted) return;
 
                           Navigator.of(context).pop();
-                          BPSnackbar.success(context, '${l.delete}: ${habit.name}');
+                          BPSnackbar.success(
+                              context, l.habitDeleted(habit.name));
                         },
                       ),
                       BPButton(
@@ -425,7 +433,8 @@ class _HabitsPageState extends State<HabitsPage> {
                                 BPButton(
                                   label: l.cancel,
                                   kind: BPButtonKind.tertiary,
-                                  onPressed: () => Navigator.of(dCtx).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(dCtx).pop(false),
                                 ),
                                 BPButton(
                                   label: l.archive,
@@ -439,11 +448,14 @@ class _HabitsPageState extends State<HabitsPage> {
 
                           if (confirmed != true) return;
 
-                          await context.read<HabitService>().archiveHabit(habit.id);
+                          await context
+                              .read<HabitService>()
+                              .archiveHabit(habit.id);
                           if (!context.mounted) return;
 
                           Navigator.of(context).pop();
-                          BPSnackbar.success(context, '${l.archive}: ${habit.name}');
+                          BPSnackbar.success(
+                              context, l.habitArchived(habit.name));
                         },
                       ),
                       BPButton(
@@ -453,7 +465,8 @@ class _HabitsPageState extends State<HabitsPage> {
                           final name = nameController.text.trim();
                           int? target;
                           if (habit.type == HabitType.count) {
-                            final t = int.tryParse(targetController.text.trim());
+                            final t =
+                                int.tryParse(targetController.text.trim());
                             if (t != null && t > 0) target = t;
                           }
 
@@ -481,4 +494,3 @@ class _HabitsPageState extends State<HabitsPage> {
     );
   }
 }
-

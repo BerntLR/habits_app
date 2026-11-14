@@ -119,14 +119,14 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// Full update of a habit (name, type, target, weekdays).
   Future<void> updateHabit(Habit updated) async {
     final index = _habits.indexWhere((h) => h.id == updated.id);
     if (index == -1) return;
 
     final old = _habits[index];
-    final newName = updated.name.trim().isEmpty ? old.name : updated.name.trim();
+    final newName =
+        updated.name.trim().isEmpty ? old.name : updated.name.trim();
     final newType = updated.type;
     final newTarget = newType == HabitType.boolean ? 1 : updated.targetValue;
     final newWeekdays = updated.activeWeekdays;
@@ -152,6 +152,17 @@ class HabitService extends ChangeNotifier {
 
     final old = _habits[index];
     _habits[index] = old.copyWith(isArchived: true);
+
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  /// Restore an archived habit to the active list.
+  Future<void> unarchiveHabit(String habitId) async {
+    final index = _habits.indexWhere((h) => h.id == habitId);
+    if (index == -1) return;
+
+    _habits[index] = _habits[index].copyWith(isArchived: false);
 
     await _saveToStorage();
     notifyListeners();
@@ -397,25 +408,37 @@ class HabitService extends ChangeNotifier {
     };
   }
 
+  /// Replaces all habits and entries with [data] (from [exportData]).
+  /// The data is parsed completely first, so a broken file throws a
+  /// [FormatException] and leaves the current data untouched.
   Future<void> importData(Map<String, dynamic> data) async {
-    _habits.clear();
-    _entriesByHabit.clear();
-
-    final habits = (data['habits'] as List).cast<Map>();
-    for (final h in habits) {
-      _habits.add(Habit.fromMap(Map<String, dynamic>.from(h)));
+    final List<Habit> newHabits;
+    final Map<String, Map<DateTime, HabitEntry>> newEntries = {};
+    try {
+      newHabits = (data['habits'] as List)
+          .map((h) => Habit.fromMap(Map<String, dynamic>.from(h as Map)))
+          .toList();
+      for (final e in data['entries'] as List) {
+        final entry = HabitEntry.fromMap(Map<String, dynamic>.from(e as Map));
+        final date = normalizeDate(entry.date);
+        newEntries.putIfAbsent(entry.habitId, () => {})[date] = HabitEntry(
+          habitId: entry.habitId,
+          date: date,
+          value: entry.value,
+        );
+      }
+    } catch (e) {
+      throw FormatException('Invalid backup file: $e');
     }
 
-    final entries = (data['entries'] as List).cast<Map>();
-    for (final e in entries) {
-      final entry = HabitEntry.fromMap(Map<String, dynamic>.from(e));
-      final map = _entriesByHabit.putIfAbsent(entry.habitId, () => {});
-      map[normalizeDate(entry.date)] = entry;
-    }
+    _habits
+      ..clear()
+      ..addAll(newHabits);
+    _entriesByHabit
+      ..clear()
+      ..addAll(newEntries);
 
     await _saveToStorage();
     notifyListeners();
   }
-
 }
-

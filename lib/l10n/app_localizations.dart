@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_nb.dart';
 
 // ignore_for_file: type=lint
 
@@ -61,7 +62,8 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -69,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -81,7 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -90,7 +94,8 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
-    Locale('en')
+    Locale('en'),
+    Locale('nb')
   ];
 
   /// No description provided for @tabToday.
@@ -126,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @habitsEmptyText.
   ///
   /// In en, this message translates to:
-  /// **'No habits yet. Tap + to add one.'**
+  /// **'Tap + to add your first habit.'**
   String get habitsEmptyText;
 
   /// No description provided for @newHabitTitle.
@@ -332,9 +337,304 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Completed'**
   String get legendFull;
+
+  /// No description provided for @tabInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get tabInfo;
+
+  /// No description provided for @dateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dateToday;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dateYesterday;
+
+  /// No description provided for @dateTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get dateTomorrow;
+
+  /// No description provided for @todaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits today'**
+  String get todaySubtitle;
+
+  /// No description provided for @selectedDateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits for selected date'**
+  String get selectedDateSubtitle;
+
+  /// No description provided for @previousDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get previousDay;
+
+  /// No description provided for @nextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get nextDay;
+
+  /// No description provided for @todayEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits today'**
+  String get todayEmptyTitle;
+
+  /// No description provided for @todayEmptyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Add habits on the Habits tab.'**
+  String get todayEmptyText;
+
+  /// No description provided for @addHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add habit'**
+  String get addHabit;
+
+  /// No description provided for @habitsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits yet'**
+  String get habitsEmptyTitle;
+
+  /// No description provided for @todaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {done} of {total} habits'**
+  String todaySummary(int done, int total);
+
+  /// No description provided for @todayTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Tap a habit to mark it as done. For count habits, use + and -.'**
+  String get todayTip;
+
+  /// No description provided for @resetDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset this day'**
+  String get resetDay;
+
+  /// No description provided for @increaseByOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase by 1'**
+  String get increaseByOne;
+
+  /// No description provided for @archivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived habits'**
+  String get archivedTitle;
+
+  /// No description provided for @archivedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived habits yet.\nArchive a habit from the Habits tab to clean up the list.'**
+  String get archivedEmpty;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @habitRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored: {name}'**
+  String habitRestored(String name);
+
+  /// No description provided for @habitDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted: {name}'**
+  String habitDeleted(String name);
+
+  /// No description provided for @habitArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived: {name}'**
+  String habitArchived(String name);
+
+  /// No description provided for @habitSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: {name}'**
+  String habitSaved(String name);
+
+  /// No description provided for @deletePermanentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\" permanently? Its history will be deleted too.'**
+  String deletePermanentMessage(String name);
+
+  /// No description provided for @infoIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Track habits day by day. Review your history in Stats.'**
+  String get infoIntro;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backupTitle;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export data'**
+  String get exportData;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import data'**
+  String get importData;
+
+  /// No description provided for @backupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export creates a JSON backup file. Import replaces your current data.'**
+  String get backupHint;
+
+  /// No description provided for @importConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all data?'**
+  String get importConfirmTitle;
+
+  /// No description provided for @importConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing replaces all habits and history on this phone with the content of the backup file.'**
+  String get importConfirmMessage;
+
+  /// No description provided for @importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importButton;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup imported.'**
+  String get importSuccess;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the backup file. Nothing was changed.'**
+  String get importFailed;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the data.'**
+  String get exportFailed;
+
+  /// No description provided for @linksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get linksTitle;
+
+  /// No description provided for @linkLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Send me a letter'**
+  String get linkLetter;
+
+  /// No description provided for @linkWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get linkWebsite;
+
+  /// No description provided for @linkPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get linkPrivacy;
+
+  /// No description provided for @linkSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get linkSupport;
+
+  /// No description provided for @linkMoreApps.
+  ///
+  /// In en, this message translates to:
+  /// **'More from BullPeak'**
+  String get linkMoreApps;
+
+  /// No description provided for @supportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the developer'**
+  String get supportTitle;
+
+  /// No description provided for @donate.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate {price}'**
+  String donate(String price);
+
+  /// No description provided for @tipsChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking if tips are available...'**
+  String get tipsChecking;
+
+  /// No description provided for @tipsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips are available. Thank you for your support!'**
+  String get tipsAvailable;
+
+  /// No description provided for @tipsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips are not available right now.'**
+  String get tipsUnavailable;
+
+  /// No description provided for @thankYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get thankYou;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get couldNotOpenLink;
+
+  /// No description provided for @couldNotOpenMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the mail app'**
+  String get couldNotOpenMail;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -343,24 +643,25 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'nb'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'nb':
+      return AppLocalizationsNb();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

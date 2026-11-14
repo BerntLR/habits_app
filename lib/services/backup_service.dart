@@ -7,56 +7,95 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../bullpeak/widgets/bp_snackbar.dart';
+import '../l10n/app_localizations.dart';
 import 'habit_service.dart';
 
 class BackupService {
   static const String _backupMime = 'application/json';
 
   Future<void> exportBackup(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
     final service = context.read<HabitService>();
     final data = service.exportData();
     final json = const JsonEncoder.withIndent('  ').convert(data);
     final fileName = _buildFileName();
+    final file = XFile.fromData(
+      utf8.encode(json),
+      mimeType: _backupMime,
+      name: fileName,
+    );
 
     try {
-      final location = await getSaveLocation(suggestedName: fileName);
-      if (location == null) return; // cancelled
-
-      final file = XFile.fromData(
-        utf8.encode(json),
-        mimeType: _backupMime,
-        name: fileName,
-      );
-
-      await file.saveTo(location.path);
+      try {
+        final location = await getSaveLocation(suggestedName: fileName);
+        if (location == null) return; // cancelled
+        await file.saveTo(location.path);
+      } catch (_) {
+        // Fallback where a save dialog is unavailable (iOS/Android): share sheet.
+        await _shareFallback(file);
+      }
     } catch (_) {
-      // Fallback for platforms where save dialog is unavailable / restricted.
-      final file = XFile.fromData(
-        utf8.encode(json),
-        mimeType: _backupMime,
-        name: fileName,
-      );
-      await _shareFallback(file);
+      if (!context.mounted) return;
+      BPSnackbar.error(context, l.exportFailed);
     }
   }
 
+  /// Asks for confirmation, then replaces all data with the chosen backup.
+  /// On any error nothing is changed and a clear message is shown.
   Future<void> importBackup(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
     final service = context.read<HabitService>();
 
-    final file = await openFile(
-      acceptedTypeGroups: [
-        const XTypeGroup(
-          label: 'JSON backup',
-          extensions: ['json'],
-        ),
-      ],
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.importConfirmTitle),
+        content: Text(l.importConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l.importButton),
+          ),
+        ],
+      ),
     );
+    if (confirmed != true) return;
 
+    final XFile? file;
+    try {
+      file = await openFile(
+        acceptedTypeGroups: [
+          const XTypeGroup(
+            label: 'JSON backup',
+            extensions: ['json'],
+            uniformTypeIdentifiers: ['public.json'],
+          ),
+        ],
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      BPSnackbar.error(context, l.importFailed);
+      return;
+    }
     if (file == null) return; // cancelled
 
-    final json = await file.readAsString();
-    final data = jsonDecode(json) as Map<String, dynamic>;
-    await service.importData(data);
+    try {
+      final json = await file.readAsString();
+      final data = jsonDecode(json) as Map<String, dynamic>;
+      await service.importData(data);
+    } catch (_) {
+      if (!context.mounted) return;
+      BPSnackbar.error(context, l.importFailed);
+      return;
+    }
+
+    if (!context.mounted) return;
+    BPSnackbar.success(context, l.importSuccess);
   }
 
   Future<void> _shareFallback(XFile file) async {

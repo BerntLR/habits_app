@@ -87,4 +87,43 @@ void main() {
     expect(restored.habits.single.name, 'Read');
     expect(restored.isHabitDone(habit.id, day), isTrue);
   });
+
+  test('importData with a broken file leaves current data untouched', () async {
+    final habit = await add('Read');
+    final day = DateTime(2026, 3, 10);
+    service.toggleHabit(habit.id, day);
+
+    await expectLater(
+      service.importData({
+        'habits': [
+          {'id': 'x', 'name': 'Broken'}, // missing required fields
+        ],
+        'entries': [],
+      }),
+      throwsFormatException,
+    );
+
+    expect(service.habits.single.name, 'Read');
+    expect(service.isHabitDone(habit.id, day), isTrue);
+  });
+
+  test('archive and restore a habit', () async {
+    final habit = await add('Read');
+
+    await service.archiveHabit(habit.id);
+    expect(service.habits.single.isArchived, isTrue);
+
+    await service.unarchiveHabit(habit.id);
+    expect(service.habits.single.isArchived, isFalse);
+  });
+
+  test('deleteHabit removes the habit and its history', () async {
+    final habit = await add('Read');
+    service.toggleHabit(habit.id, DateTime(2026, 3, 10));
+
+    await service.deleteHabit(habit.id);
+
+    expect(service.habits, isEmpty);
+    expect(service.countForHabit(habit.id, DateTime(2026, 3, 10)), 0);
+  });
 }

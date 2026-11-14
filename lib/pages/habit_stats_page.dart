@@ -217,7 +217,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => TodayPage(initialDate: date, showBackButton: true),
+                builder: (_) =>
+                    TodayPage(initialDate: date, showBackButton: true),
               ),
             );
           },
@@ -388,7 +389,8 @@ class _HabitStatsPageState extends State<HabitStatsPage> {
                     fontWeight: FontWeight.w600,
                     color: isCurrentMonth
                         ? theme.colorScheme.primary
-                        : theme.textTheme.bodyMedium?.color?.withAlpha((0.9 * 255).round()),
+                        : theme.textTheme.bodyMedium?.color
+                            ?.withAlpha((0.9 * 255).round()),
                   ),
                 ),
                 const SizedBox(height: 4),

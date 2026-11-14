@@ -18,6 +18,16 @@ void main() {
   runApp(const HabitsApp());
 }
 
+/// Follows the phone's language: Norwegian (nb/no/nn) -> nb, everything else
+/// falls back to English.
+Locale resolveAppLocale(Locale? device, Iterable<Locale> supported) {
+  const norwegian = {'nb', 'no', 'nn'};
+  if (device != null && norwegian.contains(device.languageCode)) {
+    return const Locale('nb');
+  }
+  return const Locale('en');
+}
+
 class HabitsApp extends StatelessWidget {
   const HabitsApp({super.key});
 
@@ -37,8 +47,8 @@ class HabitsApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        locale: const Locale('en'),
-        supportedLocales: const [Locale('en')],
+        supportedLocales: AppLocalizations.supportedLocales,
+        localeResolutionCallback: resolveAppLocale,
         home: const IntroFlowPage(),
       ),
     );
@@ -181,14 +191,13 @@ class _HomeShellState extends State<HomeShell> {
             selectedIcon: const Icon(Icons.insights),
             label: l.tabStats,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.info_outline),
-            selectedIcon: Icon(Icons.info),
-            label: 'Info',
+          NavigationDestination(
+            icon: const Icon(Icons.info_outline),
+            selectedIcon: const Icon(Icons.info),
+            label: l.tabInfo,
           ),
         ],
       ),
     );
   }
 }
-

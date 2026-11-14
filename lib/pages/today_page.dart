@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../bullpeak/widgets/bp_swipe_actions.dart';
 import '../bullpeak/widgets/bp_list_tile.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+import '../l10n/app_localizations.dart';
 
 import '../models/habit.dart';
 import '../services/habit_service.dart';
@@ -50,30 +53,17 @@ class _TodayPageState extends State<TodayPage> {
     final today = _normalizeDate(DateTime.now());
     final yesterday = today.subtract(const Duration(days: 1));
     final tomorrow = today.add(const Duration(days: 1));
-    if (date == today) return 'Today';
-    if (date == yesterday) return 'Yesterday';
-    if (date == tomorrow) return 'Tomorrow';
+    final l = AppLocalizations.of(context)!;
+    if (date == today) return l.dateToday;
+    if (date == yesterday) return l.dateYesterday;
+    if (date == tomorrow) return l.dateTomorrow;
 
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return DateFormat.yMMMMd(l.localeName).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final habitService = context.watch<HabitService>();
     final rawHabits = habitService.habitsForDate(_currentDate);
     final habits = [...rawHabits]..sort((a, b) {
@@ -107,10 +97,10 @@ class _TodayPageState extends State<TodayPage> {
           Expanded(
             child: habits.isEmpty
                 ? BPEmptyState(
-                    title: 'No habits today',
-                    message: 'Add habits on the Habits tab.',
+                    title: l.todayEmptyTitle,
+                    message: l.todayEmptyText,
                     icon: Icons.checklist_outlined,
-                    actionLabel: 'Add habit',
+                    actionLabel: l.addHabit,
                     onAction: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const HabitsPage()),
@@ -151,9 +141,8 @@ class _TodayPageState extends State<TodayPage> {
   Widget _buildDateHeader(BuildContext context) {
     final today = _normalizeDate(DateTime.now());
     final isToday = _currentDate == today;
-    final subtitle = isToday
-        ? 'Your habits today'
-        : 'Habits for selected date';
+    final l = AppLocalizations.of(context)!;
+    final subtitle = isToday ? l.todaySubtitle : l.selectedDateSubtitle;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,12 +153,12 @@ class _TodayPageState extends State<TodayPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: 'Previous day',
+                tooltip: l.previousDay,
                 icon: const Icon(Icons.chevron_left),
                 onPressed: () => _changeDay(-1),
               ),
               IconButton(
-                tooltip: 'Next day',
+                tooltip: l.nextDay,
                 icon: const Icon(Icons.chevron_right),
                 onPressed: isToday ? null : () => _changeDay(1),
               ),
@@ -202,9 +191,9 @@ class _TodayPageState extends State<TodayPage> {
       }
     }
     final progress = total == 0 ? 0.0 : doneCount / total;
-    final summaryText = 'Completed $doneCount of $total habits';
-
-    const tipText = 'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
+    final l = AppLocalizations.of(context)!;
+    final summaryText = l.todaySummary(doneCount, total);
+    final tipText = l.todayTip;
 
     return BPCard(
       margin: const EdgeInsets.symmetric(horizontal: BPSpacing.l, vertical: 6),
@@ -250,6 +239,7 @@ class _TodayHabitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final service = context.watch<HabitService>();
     final done = service.isHabitDone(habit.id, date);
     final count = service.countForHabit(habit.id, date);
@@ -262,16 +252,16 @@ class _TodayHabitTile extends StatelessWidget {
           barrierDismissible: true,
           useRootNavigator: true,
           builder: (dCtx) => AlertDialog(
-            title: const Text('Delete habit'),
-            content: Text('Do you want to delete "${habit.name}"?'),
+            title: Text(l.deleteHabitTitle),
+            content: Text(l.deleteHabitMessage(habit.name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(false),
-                child: const Text('Cancel'),
+                child: Text(l.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(true),
-                child: const Text('Delete'),
+                child: Text(l.delete),
               ),
             ],
           ),
@@ -281,7 +271,6 @@ class _TodayHabitTile extends StatelessWidget {
         if (confirmed == true) {
           final service = context.read<HabitService>();
           await service.deleteHabit(habit.id);
-          if (context.mounted) {}
         }
       },
       onEdit: () async {
@@ -292,7 +281,9 @@ class _TodayHabitTile extends StatelessWidget {
         leading: done ? Icons.check_circle : Icons.radio_button_unchecked,
         leadingColor: done ? Theme.of(context).colorScheme.primary : null,
         title: habit.name,
-        subtitle: habit.type == HabitType.count ? '$count / ${habit.targetValue}' : null,
+        subtitle: habit.type == HabitType.count
+            ? '$count / ${habit.targetValue}'
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -308,6 +299,7 @@ class _TodayHabitTile extends StatelessWidget {
   }
 
   void _editHabit(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final nameController = TextEditingController(text: habit.name);
     final targetController = TextEditingController(
       text: habit.type == HabitType.count ? '${habit.targetValue}' : '',
@@ -329,16 +321,16 @@ class _TodayHabitTile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Edit habit',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              Text(
+                l.editHabitTitle,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l.fieldNameLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -346,9 +338,9 @@ class _TodayHabitTile extends StatelessWidget {
                 TextField(
                   controller: targetController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Goal per day',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l.targetPerDayLabel,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               const SizedBox(height: 12),
@@ -359,7 +351,7 @@ class _TodayHabitTile extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(l.cancel),
                   ),
                   TextButton(
                     onPressed: () async {
@@ -368,16 +360,16 @@ class _TodayHabitTile extends StatelessWidget {
                         barrierDismissible: true,
                         useRootNavigator: true,
                         builder: (dCtx) => AlertDialog(
-                          title: const Text('Archive habit'),
-                          content: Text('Do you want to archive "${habit.name}"?'),
+                          title: Text(l.archiveHabitTitle),
+                          content: Text(l.archiveHabitMessage(habit.name)),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(false),
-                              child: const Text('Cancel'),
+                              child: Text(l.cancel),
                             ),
                             TextButton(
                               onPressed: () => Navigator.of(dCtx).pop(true),
-                              child: const Text('Archive'),
+                              child: Text(l.archive),
                             ),
                           ],
                         ),
@@ -385,13 +377,15 @@ class _TodayHabitTile extends StatelessWidget {
                       if (!context.mounted) return;
 
                       if (confirmed == true) {
-                        await context.read<HabitService>().archiveHabit(habit.id);
+                        await context
+                            .read<HabitService>()
+                            .archiveHabit(habit.id);
                         if (context.mounted) {
                           Navigator.of(context).pop();
                         }
                       }
                     },
-                    child: const Text('Archive'),
+                    child: Text(l.archive),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -412,7 +406,7 @@ class _TodayHabitTile extends StatelessWidget {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: const Text('Save'),
+                    child: Text(l.save),
                   ),
                 ],
               ),
@@ -432,9 +426,11 @@ class _TodayHabitTile extends StatelessWidget {
     }
   }
 
-  Widget _buildCountControls(BuildContext context, HabitService service, int count) {
-    const resetTooltip = 'Reset this day';
-    const incTooltip = 'Increase by 1';
+  Widget _buildCountControls(
+      BuildContext context, HabitService service, int count) {
+    final l = AppLocalizations.of(context)!;
+    final resetTooltip = l.resetDay;
+    final incTooltip = l.increaseByOne;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -443,7 +439,8 @@ class _TodayHabitTile extends StatelessWidget {
           icon: const Icon(Icons.remove),
           splashRadius: 20,
           tooltip: resetTooltip,
-          onPressed: count > 0 ? () => service.resetForDate(habit.id, date) : null,
+          onPressed:
+              count > 0 ? () => service.resetForDate(habit.id, date) : null,
         ),
         IconButton(
           icon: const Icon(Icons.add),
@@ -535,4 +532,3 @@ class _StreakChipState extends State<_StreakChip> {
     return Colors.greenAccent.shade400;
   }
 }
-

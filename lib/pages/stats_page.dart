@@ -140,7 +140,8 @@ _WeeklyData _computeWeeklyData(HabitService service, DateTime today) {
 
     for (int i = 0; i < 7; i++) {
       final d = todayN.subtract(Duration(days: i));
-      if (h.activeWeekdays.isNotEmpty && !h.activeWeekdays.contains(d.weekday)) {
+      if (h.activeWeekdays.isNotEmpty &&
+          !h.activeWeekdays.contains(d.weekday)) {
         continue;
       }
       active++;
@@ -201,7 +202,8 @@ Widget _dailyBars(BuildContext c, _WeeklyData d, AppLocalizations l) {
                       height: (e.progress * 80) + 4,
                       width: 14,
                       decoration: BoxDecoration(
-                        color: e.progress == 0 ? Colors.grey : Colors.tealAccent,
+                        color:
+                            e.progress == 0 ? Colors.grey : Colors.tealAccent,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -246,4 +248,3 @@ Widget _bestHabits(BuildContext c, _WeeklyData d, AppLocalizations l) {
     ),
   );
 }
-
