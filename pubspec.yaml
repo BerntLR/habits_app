@@ -2,7 +2,7 @@ name: habits_app
 description: Karos Habits – a simple daily habit tracker by Team BullPeak.
 publish_to: "none"
 
-version: 1.0.2+13
+version: 1.0.2+14
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -22,7 +22,7 @@ dependencies:
   url_launcher: ^6.3.2
 
   # IAP (TipJar)
-  in_app_purchase: ^3.2.0
+  in_app_purchase: ^3.3.1
 
   flutter_native_splash: ^2.4.3
 
