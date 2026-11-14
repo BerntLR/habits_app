@@ -165,14 +165,11 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Reorder for ikke-arkiverte vaner (brukes av ReorderableListView).
+  /// Reorders the non-archived habits. [newIndex] is the final position of
+  /// the moved item (as given by `ReorderableListView.onReorderItem`).
   Future<void> reorderHabits(int oldIndex, int newIndex) async {
     final visible = habits.where((h) => !h.isArchived).toList();
     if (visible.isEmpty) return;
-
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
 
     final moved = visible.removeAt(oldIndex);
     visible.insert(newIndex, moved);
@@ -343,7 +340,7 @@ class HabitService extends ChangeNotifier {
         }
       } catch (e) {
         if (kDebugMode) {
-          print('Failed to load habits: $e');
+          debugPrint('Failed to load habits: $e');
         }
         _habits.clear();
       }
@@ -368,7 +365,7 @@ class HabitService extends ChangeNotifier {
         }
       } catch (e) {
         if (kDebugMode) {
-          print('Failed to load habit entries: $e');
+          debugPrint('Failed to load habit entries: $e');
         }
         _entriesByHabit.clear();
       }

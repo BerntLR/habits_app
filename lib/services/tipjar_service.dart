@@ -38,8 +38,7 @@ class TipJarService {
       onError: (Object e, StackTrace st) {
         _lastError = e.toString();
         if (kDebugMode) {
-          // ignore: avoid_print
-          print('IAP purchaseStream error: $e');
+          debugPrint('IAP purchaseStream error: $e');
         }
       },
     );

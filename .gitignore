@@ -1,44 +1,43 @@
+# macOS
 .DS_Store
 
-android/_bak/
-ios/_bak/
-assets/_bak/
-assets/_bak_unused/
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
 
-lib/main.dart.bak
-
-# Flutter/Dart generated
+# Flutter/Dart
 .dart_tool/
-.buildlog
-.packages
-.pub/
-.pub-cache/
 .flutter-plugins
 .flutter-plugins-dependencies
-
-# Build outputs
+.pub-cache/
+.pub/
 build/
 
-# Platform ephemeral
+# iOS
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/ephemeral/
 ios/Flutter/.last_build_id
 ios/Runner/GeneratedPluginRegistrant.*
+ios/build/
 
+# Android
 android/.gradle/
 android/local.properties
 android/**/GeneratedPluginRegistrant.*
-android/**/generated_plugin_registrant.dart
 
-# Flutter / Dart build artifacts
-.dart_tool/
-build/
-.flutter-plugins
-.flutter-plugins-dependencies
+# Secrets
+**/key.properties
+**/*.keystore
+**/*.jks
+**/*.p8
+**/GoogleService-Info.plist
+**/google-services.json
+*.local.md
 
-# Flutter / Dart build artifacts
-.dart_tool/
-build/
-.flutter-plugins
-.flutter-plugins-dependencies
+# Old backups
+*.bak
+**/_bak/

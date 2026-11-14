@@ -21,11 +21,6 @@ class HabitsPage extends StatefulWidget {
 }
 
 class _HabitsPageState extends State<HabitsPage> {
-  bool _isEnglish(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    return locale.languageCode.toLowerCase() == 'en';
-  }
-
   Widget _watermark(BuildContext context) {
     return Center(
       child: Opacity(
@@ -47,20 +42,19 @@ class _HabitsPageState extends State<HabitsPage> {
     final allHabits = service.habits;
     final activeHabits = allHabits.where((h) => !h.isArchived).toList();
     final l = AppLocalizations.of(context)!;
-    final isEn = _isEnglish(context);
 
     final content = activeHabits.isEmpty
         ? BPEmptyState(
             icon: Icons.list_alt_outlined,
-            title: isEn ? 'No habits yet' : 'Ingen vaner enda',
+            title: 'No habits yet',
             message: l.habitsEmptyText,
-            actionLabel: isEn ? 'Add habit' : 'Add habit',
+            actionLabel: 'Add habit',
             onAction: () => _showAddHabitSheet(context, l),
           )
         : ReorderableListView.builder(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
             itemCount: activeHabits.length,
-            onReorder: (oldIndex, newIndex) {
+            onReorderItem: (oldIndex, newIndex) {
               context.read<HabitService>().reorderHabits(oldIndex, newIndex);
             },
             itemBuilder: (context, index) {

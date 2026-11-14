@@ -1,16 +1,38 @@
-# habits_app
+# Karos Habits
 
-A new Flutter project.
+A simple daily habit tracker from Team BullPeak, built with Flutter for iOS and Android.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Yes/no habits and count habits with a daily target
+- Choose which weekdays each habit is active
+- Streaks, plus month and year statistics
+- Archive and reorder habits
+- Backup and restore (JSON export and import)
+- TipJar (in-app purchase)
 
-A few resources to get you started if this is your first Flutter project:
+Data is stored locally on the device with `shared_preferences`.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Structure
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
+lib/
+  main.dart          App, theme, intro and tab navigation
+  bullpeak/          Shared BullPeak theme and widgets
+  l10n/              Texts (English)
+  models/            Habit and HabitEntry
+  pages/             Screens
+  services/          HabitService, BackupService, TipJarService
+test/                Unit tests
+```
+
+## Development
+
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
+
+Release: `flutter build ipa` / `flutter build appbundle`.

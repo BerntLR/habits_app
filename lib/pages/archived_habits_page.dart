@@ -11,7 +11,6 @@ class ArchivedHabitsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
 
-    // Antar at HabitService har en getter `habits` som returnerer alle vaner.
     final allHabits = habitService.habits;
     final archived = allHabits.where((h) => h.isArchived).toList()
       ..sort((a, b) {

@@ -31,11 +31,6 @@ class _TodayPageState extends State<TodayPage> {
     _currentDate = _normalizeDate(widget.initialDate ?? now);
   }
 
-  bool _isEnglish(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    return locale.languageCode.toLowerCase().startsWith('en');
-  }
-
   DateTime _normalizeDate(DateTime dt) {
     return DateTime(dt.year, dt.month, dt.day);
   }
@@ -55,28 +50,11 @@ class _TodayPageState extends State<TodayPage> {
     final today = _normalizeDate(DateTime.now());
     final yesterday = today.subtract(const Duration(days: 1));
     final tomorrow = today.add(const Duration(days: 1));
-    final isEn = _isEnglish(context);
+    if (date == today) return 'Today';
+    if (date == yesterday) return 'Yesterday';
+    if (date == tomorrow) return 'Tomorrow';
 
-    if (date == today) return isEn ? 'Today' : 'Today';
-    if (date == yesterday) return isEn ? 'Yesterday' : 'Yesterday';
-    if (date == tomorrow) return isEn ? 'Tomorrow' : 'Tomorrow';
-
-    const monthsNo = [
-      'januar',
-      'februar',
-      'mars',
-      'april',
-      'mai',
-      'juni',
-      'juli',
-      'august',
-      'september',
-      'oktober',
-      'november',
-      'desember',
-    ];
-
-    const monthsEn = [
+    const months = [
       'January',
       'February',
       'March',
@@ -91,20 +69,13 @@ class _TodayPageState extends State<TodayPage> {
       'December',
     ];
 
-    final list = isEn ? monthsEn : monthsNo;
-    if (isEn) {
-      return '${list[date.month - 1]} ${date.day}, ${date.year}';
-    } else {
-      return '${date.day}. ${list[date.month - 1]} ${date.year}';
-    }
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
     final habitService = context.watch<HabitService>();
     final rawHabits = habitService.habitsForDate(_currentDate);
-    final isEn = _isEnglish(context);
-
     final habits = [...rawHabits]..sort((a, b) {
         if (a.type != b.type) {
           if (a.type == HabitType.boolean && b.type == HabitType.count) {
@@ -136,12 +107,10 @@ class _TodayPageState extends State<TodayPage> {
           Expanded(
             child: habits.isEmpty
                 ? BPEmptyState(
-                    title: isEn ? 'No habits today' : 'No habits today',
-                    message: isEn
-                        ? 'Add habits on the Habits tab.'
-                        : 'Add habits on the Habits tab.',
+                    title: 'No habits today',
+                    message: 'Add habits on the Habits tab.',
                     icon: Icons.checklist_outlined,
-                    actionLabel: isEn ? 'Add habit' : 'Add habit',
+                    actionLabel: 'Add habit',
                     onAction: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const HabitsPage()),
@@ -182,11 +151,9 @@ class _TodayPageState extends State<TodayPage> {
   Widget _buildDateHeader(BuildContext context) {
     final today = _normalizeDate(DateTime.now());
     final isToday = _currentDate == today;
-    final isEn = _isEnglish(context);
-
     final subtitle = isToday
-        ? (isEn ? 'Your habits today' : 'Your habits today')
-        : (isEn ? 'Habits for selected date' : 'Habits for selected date');
+        ? 'Your habits today'
+        : 'Habits for selected date';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,12 +164,12 @@ class _TodayPageState extends State<TodayPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: isEn ? 'Previous day' : 'Previous day',
+                tooltip: 'Previous day',
                 icon: const Icon(Icons.chevron_left),
                 onPressed: () => _changeDay(-1),
               ),
               IconButton(
-                tooltip: isEn ? 'Next day' : 'Next day',
+                tooltip: 'Next day',
                 icon: const Icon(Icons.chevron_right),
                 onPressed: isToday ? null : () => _changeDay(1),
               ),
@@ -235,15 +202,9 @@ class _TodayPageState extends State<TodayPage> {
       }
     }
     final progress = total == 0 ? 0.0 : doneCount / total;
-    final isEn = _isEnglish(context);
+    final summaryText = 'Completed $doneCount of $total habits';
 
-    final summaryText = isEn
-        ? 'Completed $doneCount of $total habits'
-        : 'Completed $doneCount of $total habits';
-
-    final tipText = isEn
-        ? 'Tip: Tap a habit to mark it as done. For count habits, use + and -.'
-        : 'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
+    const tipText = 'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
 
     return BPCard(
       margin: const EdgeInsets.symmetric(horizontal: BPSpacing.l, vertical: 6),
@@ -286,11 +247,6 @@ class _TodayHabitTile extends StatelessWidget {
     required this.habit,
     required this.date,
   });
-
-  bool _isEnglish(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    return locale.languageCode.toLowerCase().startsWith('en');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -478,10 +434,8 @@ class _TodayHabitTile extends StatelessWidget {
   }
 
   Widget _buildCountControls(BuildContext context, HabitService service, int count) {
-    final isEn = _isEnglish(context);
-
-    final resetTooltip = isEn ? 'Reset this day' : 'Reset this day';
-    final incTooltip = isEn ? 'Increase by 1' : 'Increase by 1';
+    const resetTooltip = 'Reset this day';
+    const incTooltip = 'Increase by 1';
 
     return Row(
       mainAxisSize: MainAxisSize.min,
