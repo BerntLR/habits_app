@@ -2,7 +2,7 @@ name: habits_app
 description: Karos Habits – a simple daily habit tracker by Team BullPeak.
 publish_to: "none"
 
-version: 1.0.2+14
+version: 1.0.3+15
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -53,8 +53,9 @@ flutter_native_splash:
 # Android launcher icon (regenerate: dart run flutter_launcher_icons)
 flutter_launcher_icons:
   android: "ic_launcher"
-  ios: false
+  ios: true
+  remove_alpha_ios: true
   image_path: "assets/launcher/icon.png"
-  adaptive_icon_background: "#228D93"
+  adaptive_icon_background: "#013285"
   adaptive_icon_foreground: "assets/launcher/foreground.png"
   min_sdk_android: 21
