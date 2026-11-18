@@ -10,7 +10,7 @@ class StatsPage extends StatelessWidget {
   Widget _watermark(BuildContext context) {
     return Center(
       child: Opacity(
-        opacity: 0.08,
+        opacity: 0.06,
         child: Image.asset(
           Theme.of(context).brightness == Brightness.dark
               ? 'assets/watermark_dark.png'

@@ -204,4 +204,4 @@ Google krever at nye personlige utviklerkontoer har en **lukket test med minst 1
 
 - Butikkoppføringen har ny blå grafikk (ikon, promografikk, 4 skjermbilder), KI-merket.
 - Lukket test (Alpha): ny utgave 15 (1.0.3) lagret som utkast med versjonsnotater; 14 er ikke med.
-- iOS 1.0.3 (15) er lastet opp og koblet til versjonen i App Store Connect, ikke sendt inn.
+- iOS 1.0.3 (15) sendt til vurdering hos Apple 18.11.2026 (WAITING_FOR_REVIEW), automatisk utgivelse.

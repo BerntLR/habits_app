@@ -57,7 +57,7 @@ class _InfoPageState extends State<InfoPage> {
         children: [
           Center(
             child: Opacity(
-              opacity: 0.08,
+              opacity: 0.06,
               child: Image.asset(
                 Theme.of(context).brightness == Brightness.dark
                     ? 'assets/watermark_dark.png'
