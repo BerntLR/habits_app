@@ -11,7 +11,7 @@ Grafikk ligger i `butikk/play/`.
 | --- | --- |
 | Navn | **Karos Habits** |
 | Pakkenavn | `com.bullpeak.karoshabits` |
-| Versjon | 1.0.2 (versionCode 14) |
+| Versjon | 1.0.3 (versionCode 15) |
 | Kategori | Produktivitet (alternativ: Helse og trening) |
 | Språk | **English (United States)** som standard + **Norsk** – appen følger telefonens språk |
 | Pris | Gratis. Kjøp i appen: ja (frivillig TipJar). Ingen reklame |
@@ -199,3 +199,9 @@ Google krever at nye personlige utviklerkontoer har en **lukket test med minst 1
 - Lukket test (Alpha): 178 land, utgave 14 (1.0.2) lagret med versjonsnotater. Mangler testere.
 - Play Billing må være 8.0.0 eller nyere – appen bruker 9.1.0 (`in_app_purchase` 3.3.1).
 - Ikke sendt til Google ennå.
+
+## Status (2026-11-18)
+
+- Butikkoppføringen har ny blå grafikk (ikon, promografikk, 4 skjermbilder), KI-merket.
+- Lukket test (Alpha): ny utgave 15 (1.0.3) lagret som utkast med versjonsnotater; 14 er ikke med.
+- iOS 1.0.3 (15) er lastet opp og koblet til versjonen i App Store Connect, ikke sendt inn.
