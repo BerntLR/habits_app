@@ -25,7 +25,9 @@ Future<void> showHabitEditorSheet(BuildContext context, {Habit? habit}) {
 String weekdayShort(String locale, int weekday) {
   // 1 Jan 2024 was a Monday.
   final date = DateTime(2024, 1, weekday);
-  return DateFormat.E(locale).format(date);
+  final name = DateFormat.E(locale).format(date);
+  // Norwegian short names end with a dot ("man."): drop it in the chips.
+  return name.endsWith('.') ? name.substring(0, name.length - 1) : name;
 }
 
 /// "Every day" or e.g. "Mon, Wed, Fri".
@@ -89,11 +91,14 @@ class _HabitEditorSheetState extends State<_HabitEditorSheet> {
   }
 
   Future<void> _pickTime() async {
+    FocusScope.of(context).unfocus();
     final initial = _reminder ?? 20 * 60;
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initial ~/ 60, minute: initial % 60),
     );
+    // The dialog gives focus back to the name field; keep the keyboard away.
+    if (mounted) FocusScope.of(context).unfocus();
     if (picked == null) return;
     setState(() => _reminder = picked.hour * 60 + picked.minute);
   }
@@ -152,6 +157,8 @@ class _HabitEditorSheetState extends State<_HabitEditorSheet> {
         BPSnackbar.error(host, l.reminderPermissionDenied);
         return;
       }
+      // Plan again now that notifications may have been allowed.
+      ReminderService.instance.scheduleSoon(service);
     }
     if (host.mounted) BPSnackbar.success(host, l.habitSaved(name));
   }
@@ -214,7 +221,11 @@ class _HabitEditorSheetState extends State<_HabitEditorSheet> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    // Keyboard, or else the system navigation bar (Android).
+    final media = MediaQuery.of(context);
+    final bottom = media.viewInsets.bottom > 0
+        ? media.viewInsets.bottom
+        : media.viewPadding.bottom;
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
@@ -309,23 +320,18 @@ class _HabitEditorSheetState extends State<_HabitEditorSheet> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l.reminderLabel),
-              subtitle: Text(
-                _reminder == null
-                    ? l.reminderOff
-                    : formatMinutes(context, _reminder!),
-              ),
+              subtitle: _reminder == null ? Text(l.reminderOff) : null,
               secondary: const Icon(Icons.notifications_outlined),
               value: _reminder != null,
               onChanged: _toggleReminder,
             ),
             if (_reminder != null)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.schedule),
-                  label: Text(formatMinutes(context, _reminder!)),
-                  onPressed: _pickTime,
-                ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.schedule),
+                title: Text(formatMinutes(context, _reminder!)),
+                trailing: const Icon(Icons.edit_outlined),
+                onTap: _pickTime,
               ),
             if (!_isNew)
               Align(

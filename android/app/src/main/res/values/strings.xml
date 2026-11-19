@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Karos Habits</string>
+    <string name="widget_label">Karos Habits – today</string>
+    <string name="widget_description">Today\'s progress</string>
 </resources>

@@ -311,8 +311,6 @@ class HabitService extends ChangeNotifier {
     int streak = 0;
     DateTime cursor = normalizeDate(fromDate);
     final today = normalizeDate(now ?? DateTime.now());
-    final earliest =
-        normalizeDate(habit.createdAt).subtract(const Duration(days: 1));
 
     // Ends at the first missed active day (or, as a guard, year 2000).
     while (!cursor.isBefore(DateTime(2000))) {

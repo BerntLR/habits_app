@@ -16,10 +16,12 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.bullpeak.karoshabits"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Needed by flutter_local_notifications.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -64,4 +66,16 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// androidx.core 1.19 needs Android Gradle plugin 9.1; this project uses 8.x.
+configurations.all {
+    resolutionStrategy {
+        force("androidx.core:core:1.17.0")
+        force("androidx.core:core-ktx:1.17.0")
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

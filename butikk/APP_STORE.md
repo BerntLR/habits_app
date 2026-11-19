@@ -1,4 +1,26 @@
-# Karos Habits – App Store, versjon 1.0.2
+# Karos Habits – App Store, versjon 1.1.0
+
+## Nytt i 1.1.0 (What's New) – utkast, ikke sendt
+
+**English**
+> • Reminders: give a habit a time and get a notice on the chosen days – only if it is not done yet.
+> • Choose which weekdays each habit applies to.
+> • Home screen widget with today's progress.
+> • Your streak no longer shows 0 in the morning before you have checked off today.
+> • New blue look, and a clearer Info page.
+
+**Norsk**
+> • Påminnelser: gi en vane et klokkeslett og få varsel de valgte dagene – bare hvis den ikke er gjort.
+> • Velg hvilke ukedager hver vane gjelder.
+> • Widget på hjemskjermen med dagens fremgang.
+> • Rekken viser ikke lenger 0 om morgenen før du har krysset av for i dag.
+> • Nytt blått utseende og en tydeligere Info-side.
+
+Beskrivelsen bør få med påminnelser og widget (se GOOGLE_PLAY.md for tekst).
+
+---
+
+## Tidligere: versjon 1.0.2
 
 App-ID i App Store Connect: `6757344382` · Bundle ID `com.bullpeak.karoshabits`
 

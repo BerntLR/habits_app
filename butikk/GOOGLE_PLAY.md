@@ -11,7 +11,7 @@ Grafikk ligger i `butikk/play/`.
 | --- | --- |
 | Navn | **Karos Habits** |
 | Pakkenavn | `com.bullpeak.karoshabits` |
-| Versjon | 1.0.3 (versionCode 15) |
+| Versjon | 1.1.0 (versionCode 16) – 1.0.3 (15) ligger i Play-utkastet |
 | Kategori | Produktivitet (alternativ: Helse og trening) |
 | Språk | **English (United States)** som standard + **Norsk** – appen følger telefonens språk |
 | Pris | Gratis. Kjøp i appen: ja (frivillig TipJar). Ingen reklame |
@@ -35,6 +35,11 @@ Grafikk ligger i `butikk/play/`.
 > **Two kinds of habits**
 > • Yes/no habits – "Read 20 minutes", "Stretch", "No phone after 22:00"
 > • Count habits with a daily goal – "Drink 8 glasses of water", "Walk 10,000 steps"
+>
+> **Reminders and widget**
+> • Get a reminder at the time you choose – only on days the habit is not done yet
+> • Pick the weekdays each habit applies to
+> • Home screen widget with today's progress
 >
 > **See your progress**
 > • Today view with a clear progress bar
@@ -79,6 +84,11 @@ Legg til under *Hovedoppføring i butikken → Administrer oversettelser → Nor
 > **To typer vaner**
 > • Ja/nei-vaner – «Lese 20 minutter», «Tøye ut», «Ingen mobil etter 22»
 > • Tellevaner med dagsmål – «Drikke 8 glass vann», «Gå 10 000 skritt»
+>
+> **Påminnelser og widget**
+> • Få en påminnelse når du vil – bare de dagene vanen ikke er gjort ennå
+> • Velg hvilke ukedager hver vane gjelder
+> • Widget på hjemskjermen med dagens fremgang
 >
 > **Se fremgangen din**
 > • I dag-visning med tydelig fremdriftslinje
@@ -205,3 +215,10 @@ Google krever at nye personlige utviklerkontoer har en **lukket test med minst 1
 - Butikkoppføringen har ny blå grafikk (ikon, promografikk, 4 skjermbilder), KI-merket.
 - Lukket test (Alpha): ny utgave 15 (1.0.3) lagret som utkast med versjonsnotater; 14 er ikke med.
 - iOS 1.0.3 (15) sendt til vurdering hos Apple 18.11.2026 (WAITING_FOR_REVIEW), automatisk utgivelse.
+
+## 1.1.0 (16) – laget 2026-11-19, ikke lastet opp
+
+- Påminnelser (varsler), ukedager per vane, hjemskjerm-widget, Karo-standard (blått tema, vannmerke, Info).
+- Nye tillatelser i Android: varsler (POST_NOTIFICATIONS) og oppstart (RECEIVE_BOOT_COMPLETED, for å
+  planlegge påminnelser på nytt etter omstart). Datasikkerhet: uendret – alt er fortsatt lokalt.
+- Beskrivelsen over er oppdatert med påminnelser og widget; må limes inn i Play Console.

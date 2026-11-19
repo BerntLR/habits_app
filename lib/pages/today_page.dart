@@ -406,11 +406,18 @@ class _StreakChipState extends State<_StreakChip> {
     );
   }
 
+  /// Readable in both light and dark mode.
   Color _colorForStreak(BuildContext context, int streak) {
-    final scheme = Theme.of(context).colorScheme;
-    if (streak <= 0) return scheme.onSurfaceVariant;
-    if (streak <= 3) return Colors.amberAccent.shade200;
-    if (streak <= 14) return Colors.deepOrangeAccent;
-    return Colors.greenAccent.shade400;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    if (streak <= 0) {
+      return Theme.of(context).colorScheme.onSurfaceVariant;
+    }
+    if (streak <= 3) {
+      return dark ? Colors.amber.shade300 : Colors.amber.shade800;
+    }
+    if (streak <= 14) {
+      return dark ? Colors.deepOrange.shade300 : Colors.deepOrange.shade700;
+    }
+    return dark ? Colors.green.shade300 : Colors.green.shade700;
   }
 }

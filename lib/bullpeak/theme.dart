@@ -15,6 +15,8 @@ class BullPeakTheme {
       seedColor: accent,
       brightness: brightness,
       error: Tokens.error,
+      // Keeps the blue close to the app icon instead of a muted tone.
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
     return ThemeData(
       useMaterial3: true,

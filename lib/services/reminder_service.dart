@@ -135,7 +135,6 @@ class ReminderService {
           scheduledDate: when,
           notificationDetails: details,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-          title: habit.name,
           body: l.reminderBody(habit.name),
         );
       }
