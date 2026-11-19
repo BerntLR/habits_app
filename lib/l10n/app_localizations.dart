@@ -416,18 +416,6 @@ abstract class AppLocalizations {
   /// **'Completed {done} of {total} habits'**
   String todaySummary(int done, int total);
 
-  /// No description provided for @todayTip.
-  ///
-  /// In en, this message translates to:
-  /// **'Tip: Tap a habit to mark it as done. For count habits, use + and -.'**
-  String get todayTip;
-
-  /// No description provided for @resetDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset this day'**
-  String get resetDay;
-
   /// No description provided for @increaseByOne.
   ///
   /// In en, this message translates to:
@@ -485,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoIntro.
   ///
   /// In en, this message translates to:
-  /// **'Track habits day by day. Review your history in Stats.'**
+  /// **'Add the habits you want to keep and check them off every day on the Today tab. Yes/no habits are done with one tap; count habits are done when you reach the daily goal. Your streak shows how many days in a row you have made it. See your progress per week, month and year under Stats.'**
   String get infoIntro;
 
   /// No description provided for @backupTitle.
@@ -590,47 +578,125 @@ abstract class AppLocalizations {
   /// **'Support the developer'**
   String get supportTitle;
 
-  /// No description provided for @donate.
-  ///
-  /// In en, this message translates to:
-  /// **'Donate {price}'**
-  String donate(String price);
-
-  /// No description provided for @tipsChecking.
-  ///
-  /// In en, this message translates to:
-  /// **'Checking if tips are available...'**
-  String get tipsChecking;
-
-  /// No description provided for @tipsAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Tips are available. Thank you for your support!'**
-  String get tipsAvailable;
-
   /// No description provided for @tipsUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Tips are not available right now.'**
   String get tipsUnavailable;
 
-  /// No description provided for @thankYou.
-  ///
-  /// In en, this message translates to:
-  /// **'Thank you!'**
-  String get thankYou;
-
   /// No description provided for @couldNotOpenLink.
   ///
   /// In en, this message translates to:
-  /// **'Could not open the link'**
+  /// **'Could not open the link.'**
   String get couldNotOpenLink;
 
   /// No description provided for @couldNotOpenMail.
   ///
   /// In en, this message translates to:
-  /// **'Could not open the mail app'**
+  /// **'Could not open e-mail.'**
   String get couldNotOpenMail;
+
+  /// No description provided for @infoRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get infoRemindersTitle;
+
+  /// No description provided for @infoRemindersText.
+  ///
+  /// In en, this message translates to:
+  /// **'Give a habit a reminder time, and the phone notifies you on the chosen days, but only if the habit is not done yet.'**
+  String get infoRemindersText;
+
+  /// No description provided for @infoWidgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home screen widget'**
+  String get infoWidgetTitle;
+
+  /// No description provided for @infoWidgetText.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the Karos Habits widget to the home screen to see today\'s progress at a glance.'**
+  String get infoWidgetText;
+
+  /// No description provided for @donateNok.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate NOK {amount}'**
+  String donateNok(int amount);
+
+  /// No description provided for @thankYouForSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your support!'**
+  String get thankYouForSupport;
+
+  /// No description provided for @decreaseByOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease by 1'**
+  String get decreaseByOne;
+
+  /// No description provided for @weekdaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get weekdaysLabel;
+
+  /// No description provided for @everyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get everyDay;
+
+  /// No description provided for @reminderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderLabel;
+
+  /// No description provided for @reminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get reminderOff;
+
+  /// No description provided for @reminderAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder {time}'**
+  String reminderAt(String time);
+
+  /// No description provided for @reminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t forget: {name}'**
+  String reminderBody(String name);
+
+  /// No description provided for @reminderPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off for Karos Habits. Turn them on in Settings to get reminders.'**
+  String get reminderPermissionDenied;
+
+  /// No description provided for @pickAtLeastOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one day.'**
+  String get pickAtLeastOneDay;
+
+  /// No description provided for @widgetSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String widgetSummary(int done, int total);
+
+  /// No description provided for @widgetNoHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits today'**
+  String get widgetNoHabits;
 }
 
 class _AppLocalizationsDelegate

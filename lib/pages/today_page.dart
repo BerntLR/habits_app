@@ -1,18 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../bullpeak/widgets/bp_swipe_actions.dart';
-import '../bullpeak/widgets/bp_list_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../l10n/app_localizations.dart';
-
-import '../models/habit.dart';
-import '../services/habit_service.dart';
-import '../bullpeak/widgets/bp_empty_state.dart';
-import 'habits_page.dart';
-import '../bullpeak/widgets/bp_section_header.dart';
 import '../bullpeak/tokens.dart';
 import '../bullpeak/widgets/bp_card.dart';
+import '../bullpeak/widgets/bp_empty_state.dart';
+import '../bullpeak/widgets/bp_list_tile.dart';
+import '../bullpeak/widgets/bp_section_header.dart';
+import '../bullpeak/widgets/bp_snackbar.dart';
+import '../bullpeak/widgets/bp_swipe_actions.dart';
+import '../l10n/app_localizations.dart';
+import '../models/habit.dart';
+import '../services/habit_service.dart';
+import '../widgets/confirm_dialog.dart';
+import '../widgets/habit_editor_sheet.dart';
+import '../widgets/watermark.dart';
 
 class TodayPage extends StatefulWidget {
   final DateTime? initialDate;
@@ -24,23 +28,66 @@ class TodayPage extends StatefulWidget {
   State<TodayPage> createState() => _TodayPageState();
 }
 
-class _TodayPageState extends State<TodayPage> {
+class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   late DateTime _currentDate;
+
+  /// The day that counted as "today" when the page last looked. Used to move
+  /// along to the new day after midnight.
+  late DateTime _knownToday;
+  Timer? _midnightTimer;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _currentDate = _normalizeDate(widget.initialDate ?? now);
+    _knownToday = normalizeDate(DateTime.now());
+    _currentDate = normalizeDate(widget.initialDate ?? _knownToday);
+    WidgetsBinding.instance.addObserver(this);
+    _scheduleMidnightCheck();
   }
 
-  DateTime _normalizeDate(DateTime dt) {
-    return DateTime(dt.year, dt.month, dt.day);
+  @override
+  void dispose() {
+    _midnightTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkNewDay();
+  }
+
+  void _scheduleMidnightCheck() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    _midnightTimer = Timer(
+      nextMidnight.difference(now) + const Duration(seconds: 1),
+      _checkNewDay,
+    );
+  }
+
+  /// If a new day has started and the page was showing "today", show the
+  /// new today. A day the user picked on purpose is left alone.
+  void _checkNewDay() {
+    if (!mounted) return;
+    final today = normalizeDate(DateTime.now());
+    if (today != _knownToday) {
+      setState(() {
+        if (_currentDate == _knownToday) _currentDate = today;
+        _knownToday = today;
+      });
+    }
+    _scheduleMidnightCheck();
   }
 
   void _changeDay(int delta) {
-    final newDate = _currentDate.add(Duration(days: delta));
-    final today = _normalizeDate(DateTime.now());
+    final newDate = DateTime(
+      _currentDate.year,
+      _currentDate.month,
+      _currentDate.day + delta,
+    );
+    final today = normalizeDate(DateTime.now());
 
     if (newDate.isAfter(today)) return;
 
@@ -50,40 +97,21 @@ class _TodayPageState extends State<TodayPage> {
   }
 
   String _formatDate(BuildContext context, DateTime date) {
-    final today = _normalizeDate(DateTime.now());
-    final yesterday = today.subtract(const Duration(days: 1));
-    final tomorrow = today.add(const Duration(days: 1));
+    final today = normalizeDate(DateTime.now());
+    final yesterday = DateTime(today.year, today.month, today.day - 1);
     final l = AppLocalizations.of(context)!;
     if (date == today) return l.dateToday;
     if (date == yesterday) return l.dateYesterday;
-    if (date == tomorrow) return l.dateTomorrow;
 
-    return DateFormat.yMMMMd(l.localeName).format(date);
+    return DateFormat.yMMMMEEEEd(l.localeName).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final habitService = context.watch<HabitService>();
-    final rawHabits = habitService.habitsForDate(_currentDate);
-    final habits = [...rawHabits]..sort((a, b) {
-        if (a.type != b.type) {
-          if (a.type == HabitType.boolean && b.type == HabitType.count) {
-            return -1;
-          }
-          if (a.type == HabitType.count && b.type == HabitType.boolean) {
-            return 1;
-          }
-        }
-        try {
-          final ao = a.sortOrder;
-          final bo = b.sortOrder;
-          if (ao != bo) {
-            return ao.compareTo(bo);
-          }
-        } catch (_) {}
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+    // Same order as on the Habits tab (the order the user has chosen).
+    final habits = habitService.habitsForDate(_currentDate);
 
     final content = SafeArea(
       child: Column(
@@ -101,16 +129,12 @@ class _TodayPageState extends State<TodayPage> {
                     message: l.todayEmptyText,
                     icon: Icons.checklist_outlined,
                     actionLabel: l.addHabit,
-                    onAction: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const HabitsPage()),
-                      );
-                    },
+                    onAction: () => showHabitEditorSheet(context),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
                     itemCount: habits.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    separatorBuilder: (_, __) => const SizedBox(height: 6),
                     itemBuilder: (context, index) {
                       final habit = habits[index];
                       return _TodayHabitTile(
@@ -124,7 +148,9 @@ class _TodayPageState extends State<TodayPage> {
       ),
     );
 
-    if (!widget.showBackButton) return content;
+    final body = Stack(children: [const Watermark(), content]);
+
+    if (!widget.showBackButton) return Scaffold(body: body);
 
     return Scaffold(
       appBar: AppBar(
@@ -132,14 +158,13 @@ class _TodayPageState extends State<TodayPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        centerTitle: true,
       ),
-      body: content,
+      body: body,
     );
   }
 
   Widget _buildDateHeader(BuildContext context) {
-    final today = _normalizeDate(DateTime.now());
+    final today = normalizeDate(DateTime.now());
     final isToday = _currentDate == today;
     final l = AppLocalizations.of(context)!;
     final subtitle = isToday ? l.todaySubtitle : l.selectedDateSubtitle;
@@ -193,7 +218,6 @@ class _TodayPageState extends State<TodayPage> {
     final progress = total == 0 ? 0.0 : doneCount / total;
     final l = AppLocalizations.of(context)!;
     final summaryText = l.todaySummary(doneCount, total);
-    final tipText = l.todayTip;
 
     return BPCard(
       margin: const EdgeInsets.symmetric(horizontal: BPSpacing.l, vertical: 6),
@@ -207,20 +231,13 @@ class _TodayPageState extends State<TodayPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            tipText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
           ),
         ],
       ),
@@ -246,179 +263,46 @@ class _TodayHabitTile extends StatelessWidget {
     final streak = service.streakForHabit(habit.id, date);
 
     return BPSwipeActions(
+      key: ValueKey('today_${habit.id}'),
+      dismissKey: ValueKey('today_${habit.id}'),
       onDelete: () async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          useRootNavigator: true,
-          builder: (dCtx) => AlertDialog(
-            title: Text(l.deleteHabitTitle),
-            content: Text(l.deleteHabitMessage(habit.name)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dCtx).pop(false),
-                child: Text(l.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(dCtx).pop(true),
-                child: Text(l.delete),
-              ),
+        final confirmed = await confirmDelete(
+          context,
+          title: l.deleteHabitTitle,
+          message: l.deleteHabitMessage(habit.name),
+        );
+        if (!confirmed || !context.mounted) return;
+        await context.read<HabitService>().deleteHabit(habit.id);
+        if (!context.mounted) return;
+        BPSnackbar.success(context, l.habitDeleted(habit.name));
+      },
+      onEdit: () => showHabitEditorSheet(context, habit: habit),
+      child: BPCard(
+        padding: EdgeInsets.zero,
+        child: BPListTile(
+          onTap: () => _handleTap(service),
+          leading: done ? Icons.check_circle : Icons.radio_button_unchecked,
+          leadingColor: done ? Theme.of(context).colorScheme.primary : null,
+          title: habit.name,
+          subtitle: habit.type == HabitType.count
+              ? '$count / ${habit.targetValue}'
+              : null,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (streak > 0) _StreakChip(streak: streak),
+              if (habit.type == HabitType.count) ...[
+                const SizedBox(width: 4),
+                _buildCountControls(context, service, count),
+              ],
             ],
           ),
-        );
-        if (!context.mounted) return;
-
-        if (confirmed == true) {
-          final service = context.read<HabitService>();
-          await service.deleteHabit(habit.id);
-        }
-      },
-      onEdit: () async {
-        _editHabit(context);
-      },
-      child: BPListTile(
-        onTap: () => _handleTap(context, service, done),
-        leading: done ? Icons.check_circle : Icons.radio_button_unchecked,
-        leadingColor: done ? Theme.of(context).colorScheme.primary : null,
-        title: habit.name,
-        subtitle: habit.type == HabitType.count
-            ? '$count / ${habit.targetValue}'
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (streak > 0) _StreakChip(streak: streak),
-            if (habit.type == HabitType.count) ...[
-              const SizedBox(width: 4),
-              _buildCountControls(context, service, count),
-            ],
-          ],
         ),
       ),
     );
   }
 
-  void _editHabit(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final nameController = TextEditingController(text: habit.name);
-    final targetController = TextEditingController(
-      text: habit.type == HabitType.count ? '${habit.targetValue}' : '',
-    );
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (ctx) {
-        final bottomInsets = MediaQuery.of(ctx).viewInsets.bottom;
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: bottomInsets,
-            left: 16,
-            right: 16,
-            top: 12,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l.editHabitTitle,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: l.fieldNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (habit.type == HabitType.count)
-                TextField(
-                  controller: targetController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: l.targetPerDayLabel,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: Text(l.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        barrierDismissible: true,
-                        useRootNavigator: true,
-                        builder: (dCtx) => AlertDialog(
-                          title: Text(l.archiveHabitTitle),
-                          content: Text(l.archiveHabitMessage(habit.name)),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(dCtx).pop(false),
-                              child: Text(l.cancel),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(dCtx).pop(true),
-                              child: Text(l.archive),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (!context.mounted) return;
-
-                      if (confirmed == true) {
-                        await context
-                            .read<HabitService>()
-                            .archiveHabit(habit.id);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      }
-                    },
-                    child: Text(l.archive),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final name = nameController.text.trim();
-                      int? target;
-                      if (habit.type == HabitType.count) {
-                        final t = int.tryParse(targetController.text.trim());
-                        if (t != null && t > 0) target = t;
-                      }
-
-                      await context.read<HabitService>().updateHabitBasic(
-                            habit.id,
-                            name: name.isEmpty ? null : name,
-                            targetValue: target,
-                          );
-
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text(l.save),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _handleTap(BuildContext context, HabitService service, bool done) {
+  void _handleTap(HabitService service) {
     if (habit.type == HabitType.boolean) {
       service.toggleHabit(habit.id, date);
     } else {
@@ -429,8 +313,6 @@ class _TodayHabitTile extends StatelessWidget {
   Widget _buildCountControls(
       BuildContext context, HabitService service, int count) {
     final l = AppLocalizations.of(context)!;
-    final resetTooltip = l.resetDay;
-    final incTooltip = l.increaseByOne;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -438,14 +320,14 @@ class _TodayHabitTile extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.remove),
           splashRadius: 20,
-          tooltip: resetTooltip,
+          tooltip: l.decreaseByOne,
           onPressed:
-              count > 0 ? () => service.resetForDate(habit.id, date) : null,
+              count > 0 ? () => service.decrementCount(habit.id, date) : null,
         ),
         IconButton(
           icon: const Icon(Icons.add),
           splashRadius: 20,
-          tooltip: incTooltip,
+          tooltip: l.increaseByOne,
           onPressed: () => service.incrementCount(habit.id, date),
         ),
       ],

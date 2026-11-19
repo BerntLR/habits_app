@@ -73,7 +73,7 @@ void main() {
     // Archive from the edit sheet, then restore from the archive.
     await tester.tap(find.text('Vaner'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.text('Lese'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Arkiver').first);
     await tester.pumpAndSettle();
@@ -92,7 +92,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Delete from the edit sheet really deletes (not archives).
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.text('Lese'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Slett').first);
     await tester.pumpAndSettle();

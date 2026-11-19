@@ -182,13 +182,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get todayTip =>
-      'Tip: Tap a habit to mark it as done. For count habits, use + and -.';
-
-  @override
-  String get resetDay => 'Reset this day';
-
-  @override
   String get increaseByOne => 'Increase by 1';
 
   @override
@@ -228,7 +221,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoIntro =>
-      'Track habits day by day. Review your history in Stats.';
+      'Add the habits you want to keep and check them off every day on the Today tab. Yes/no habits are done with one tap; count habits are done when you reach the daily goal. Your streak shows how many days in a row you have made it. See your progress per week, month and year under Stats.';
 
   @override
   String get backupTitle => 'Backup';
@@ -285,25 +278,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportTitle => 'Support the developer';
 
   @override
-  String donate(String price) {
-    return 'Donate $price';
-  }
-
-  @override
-  String get tipsChecking => 'Checking if tips are available...';
-
-  @override
-  String get tipsAvailable => 'Tips are available. Thank you for your support!';
-
-  @override
   String get tipsUnavailable => 'Tips are not available right now.';
 
   @override
-  String get thankYou => 'Thank you!';
+  String get couldNotOpenLink => 'Could not open the link.';
 
   @override
-  String get couldNotOpenLink => 'Could not open the link';
+  String get couldNotOpenMail => 'Could not open e-mail.';
 
   @override
-  String get couldNotOpenMail => 'Could not open the mail app';
+  String get infoRemindersTitle => 'Reminders';
+
+  @override
+  String get infoRemindersText =>
+      'Give a habit a reminder time, and the phone notifies you on the chosen days, but only if the habit is not done yet.';
+
+  @override
+  String get infoWidgetTitle => 'Home screen widget';
+
+  @override
+  String get infoWidgetText =>
+      'Add the Karos Habits widget to the home screen to see today\'s progress at a glance.';
+
+  @override
+  String donateNok(int amount) {
+    return 'Donate NOK $amount';
+  }
+
+  @override
+  String get thankYouForSupport => 'Thank you for your support!';
+
+  @override
+  String get decreaseByOne => 'Decrease by 1';
+
+  @override
+  String get weekdaysLabel => 'Days';
+
+  @override
+  String get everyDay => 'Every day';
+
+  @override
+  String get reminderLabel => 'Reminder';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String reminderAt(String time) {
+    return 'Reminder $time';
+  }
+
+  @override
+  String reminderBody(String name) {
+    return 'Don\'t forget: $name';
+  }
+
+  @override
+  String get reminderPermissionDenied =>
+      'Notifications are turned off for Karos Habits. Turn them on in Settings to get reminders.';
+
+  @override
+  String get pickAtLeastOneDay => 'Pick at least one day.';
+
+  @override
+  String widgetSummary(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get widgetNoHabits => 'No habits today';
 }

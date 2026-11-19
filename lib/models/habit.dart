@@ -13,6 +13,9 @@ class Habit {
   final DateTime createdAt;
   final int sortOrder;
 
+  /// Daily reminder time as minutes after midnight, or null for no reminder.
+  final int? reminderMinutes;
+
   Habit({
     required this.id,
     required this.name,
@@ -22,6 +25,7 @@ class Habit {
     this.isArchived = false,
     DateTime? createdAt,
     this.sortOrder = 0,
+    this.reminderMinutes,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Habit copyWith({
@@ -33,6 +37,8 @@ class Habit {
     bool? isArchived,
     DateTime? createdAt,
     int? sortOrder,
+    int? reminderMinutes,
+    bool clearReminder = false,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -43,6 +49,8 @@ class Habit {
       isArchived: isArchived ?? this.isArchived,
       createdAt: createdAt ?? this.createdAt,
       sortOrder: sortOrder ?? this.sortOrder,
+      reminderMinutes:
+          clearReminder ? null : (reminderMinutes ?? this.reminderMinutes),
     );
   }
 
@@ -56,6 +64,7 @@ class Habit {
       'isArchived': isArchived,
       'createdAt': createdAt.toIso8601String(),
       'sortOrder': sortOrder,
+      if (reminderMinutes != null) 'reminderMinutes': reminderMinutes,
     };
   }
 
@@ -72,6 +81,7 @@ class Habit {
       isArchived: (map['isArchived'] as bool?) ?? false,
       createdAt: DateTime.parse(map['createdAt'] as String),
       sortOrder: (map['sortOrder'] as int?) ?? 0,
+      reminderMinutes: map['reminderMinutes'] as int?,
     );
   }
 }

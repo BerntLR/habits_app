@@ -59,7 +59,91 @@ void main() {
     // Gap on day 4, then one more completed day.
     service.toggleHabit(habit.id, today.subtract(const Duration(days: 4)));
 
-    expect(service.streakForHabit(habit.id, today), 3);
+    expect(service.streakForHabit(habit.id, today, now: today), 3);
+  });
+
+  test('today not done yet keeps the streak from yesterday', () async {
+    final habit = await add('Read');
+    final today = DateTime(2026, 3, 10);
+    for (var i = 1; i <= 5; i++) {
+      service.toggleHabit(habit.id, today.subtract(Duration(days: i)));
+    }
+    expect(service.streakForHabit(habit.id, today, now: today), 5);
+    service.toggleHabit(habit.id, today);
+    expect(service.streakForHabit(habit.id, today, now: today), 6);
+    // A past day that was missed still breaks the streak.
+    expect(
+      service.streakForHabit(
+        habit.id,
+        today.add(const Duration(days: 2)),
+        now: today.add(const Duration(days: 3)),
+      ),
+      0,
+    );
+  });
+
+  test('streak skips days the habit is not active', () async {
+    await service.addHabit(
+      name: 'Gym',
+      type: HabitType.boolean,
+      activeWeekdays: {1, 3, 5},
+    );
+    final habit = service.habits.single;
+    // Mon 9, Wed 11, Fri 13 March 2026.
+    for (final d in [9, 11, 13]) {
+      service.toggleHabit(habit.id, DateTime(2026, 3, d));
+    }
+    final sat = DateTime(2026, 3, 14);
+    expect(service.streakForHabit(habit.id, sat, now: sat), 3);
+    expect(service.habitsForDate(sat), isEmpty);
+    expect(service.habitsForDate(DateTime(2026, 3, 13)).single.name, 'Gym');
+  });
+
+  test('decrementCount lowers by one and removes at zero', () async {
+    final habit = await add('Water', type: HabitType.count, target: 3);
+    final day = DateTime(2026, 3, 10);
+    service.incrementCount(habit.id, day);
+    service.incrementCount(habit.id, day);
+    service.decrementCount(habit.id, day);
+    expect(service.countForHabit(habit.id, day), 1);
+    service.decrementCount(habit.id, day);
+    expect(service.countForHabit(habit.id, day), 0);
+    service.decrementCount(habit.id, day);
+    expect(service.countForHabit(habit.id, day), 0);
+  });
+
+  test('reminder and weekdays are saved, and old data without them loads',
+      () async {
+    await service.addHabit(
+      name: 'Stretch',
+      type: HabitType.boolean,
+      activeWeekdays: {2, 4},
+      reminderMinutes: 20 * 60 + 30,
+    );
+    final h = service.habits.single;
+    expect(h.reminderMinutes, 1230);
+    await service.updateHabit(h.copyWith(clearReminder: true));
+    expect(service.habits.single.reminderMinutes, isNull);
+    expect(service.habits.single.activeWeekdays, {2, 4});
+
+    final old = Habit.fromMap({
+      'id': 'x',
+      'name': 'Old',
+      'type': 'boolean',
+      'targetValue': 1,
+      'activeWeekdays': [1, 2, 3, 4, 5, 6, 7],
+      'createdAt': '2025-01-01T00:00:00.000',
+    });
+    expect(old.reminderMinutes, isNull);
+    expect(old.isArchived, isFalse);
+  });
+
+  test('export has app name, schema version and time', () async {
+    await add('Read');
+    final data = service.exportData();
+    expect(data['app'], 'karos_habits');
+    expect(data['schemaVersion'], 2);
+    expect(DateTime.tryParse(data['exportedAt'] as String), isNotNull);
   });
 
   test('reorderHabits moves a habit to its final position', () async {

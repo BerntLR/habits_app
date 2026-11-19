@@ -182,13 +182,6 @@ class AppLocalizationsNb extends AppLocalizations {
   }
 
   @override
-  String get todayTip =>
-      'Tips: Trykk på en vane for å krysse den av. For tellevaner bruker du + og -.';
-
-  @override
-  String get resetDay => 'Nullstill denne dagen';
-
-  @override
   String get increaseByOne => 'Øk med 1';
 
   @override
@@ -228,7 +221,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get infoIntro =>
-      'Følg vanene dine dag for dag. Se historikken under Statistikk.';
+      'Legg inn vanene du vil holde, og kryss dem av hver dag under I dag. Ja/nei-vaner er fullført med ett trykk; tellevaner er fullført når du når dagsmålet. Rekken viser hvor mange dager på rad du har klart det. Se fremgangen per uke, måned og år under Statistikk.';
 
   @override
   String get backupTitle => 'Sikkerhetskopi';
@@ -276,7 +269,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get linkPrivacy => 'Personvern';
 
   @override
-  String get linkSupport => 'Support';
+  String get linkSupport => 'Brukerstøtte';
 
   @override
   String get linkMoreApps => 'Mer fra BullPeak';
@@ -285,25 +278,73 @@ class AppLocalizationsNb extends AppLocalizations {
   String get supportTitle => 'Støtt utvikleren';
 
   @override
-  String donate(String price) {
-    return 'Gi $price';
-  }
-
-  @override
-  String get tipsChecking => 'Sjekker om tips er tilgjengelig ...';
-
-  @override
-  String get tipsAvailable => 'Tips er tilgjengelig. Takk for støtten!';
-
-  @override
   String get tipsUnavailable => 'Tips er ikke tilgjengelig akkurat nå.';
 
   @override
-  String get thankYou => 'Tusen takk!';
+  String get couldNotOpenLink => 'Kunne ikke åpne lenken.';
 
   @override
-  String get couldNotOpenLink => 'Kunne ikke åpne lenken';
+  String get couldNotOpenMail => 'Kunne ikke åpne e-post.';
 
   @override
-  String get couldNotOpenMail => 'Kunne ikke åpne e-postappen';
+  String get infoRemindersTitle => 'Påminnelser';
+
+  @override
+  String get infoRemindersText =>
+      'Gi en vane et klokkeslett for påminnelse, så varsler telefonen deg de valgte dagene, men bare hvis vanen ikke er gjort ennå.';
+
+  @override
+  String get infoWidgetTitle => 'Widget på hjemskjermen';
+
+  @override
+  String get infoWidgetText =>
+      'Legg til Karos Habits-widgeten på hjemskjermen for å se dagens fremgang med ett blikk.';
+
+  @override
+  String donateNok(int amount) {
+    return 'Doner $amount kr';
+  }
+
+  @override
+  String get thankYouForSupport => 'Tusen takk for støtten!';
+
+  @override
+  String get decreaseByOne => 'Trekk fra 1';
+
+  @override
+  String get weekdaysLabel => 'Dager';
+
+  @override
+  String get everyDay => 'Hver dag';
+
+  @override
+  String get reminderLabel => 'Påminnelse';
+
+  @override
+  String get reminderOff => 'Av';
+
+  @override
+  String reminderAt(String time) {
+    return 'Påminnelse $time';
+  }
+
+  @override
+  String reminderBody(String name) {
+    return 'Husk: $name';
+  }
+
+  @override
+  String get reminderPermissionDenied =>
+      'Varsler er slått av for Karos Habits. Slå dem på i Innstillinger for å få påminnelser.';
+
+  @override
+  String get pickAtLeastOneDay => 'Velg minst én dag.';
+
+  @override
+  String widgetSummary(int done, int total) {
+    return '$done av $total fullført';
+  }
+
+  @override
+  String get widgetNoHabits => 'Ingen vaner i dag';
 }

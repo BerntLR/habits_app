@@ -5,6 +5,7 @@ import '../bullpeak/widgets/bp_snackbar.dart';
 import '../l10n/app_localizations.dart';
 import '../models/habit.dart';
 import '../services/habit_service.dart';
+import '../widgets/confirm_dialog.dart';
 
 class ArchivedHabitsPage extends StatelessWidget {
   const ArchivedHabitsPage({super.key});
@@ -82,25 +83,11 @@ class _ArchivedHabitTile extends StatelessWidget {
               tooltip: l.deleteHabitTitle,
               icon: const Icon(Icons.delete_outline),
               onPressed: () async {
-                final ok = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text(l.deleteHabitTitle),
-                        content: Text(l.deletePermanentMessage(habit.name)),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(false),
-                            child: Text(l.cancel),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.of(ctx).pop(true),
-                            child: Text(l.delete),
-                          ),
-                        ],
-                      ),
-                    ) ??
-                    false;
-
+                final ok = await confirmDelete(
+                  context,
+                  title: l.deleteHabitTitle,
+                  message: l.deletePermanentMessage(habit.name),
+                );
                 if (!ok) return;
 
                 await habitService.deleteHabit(habit.id);

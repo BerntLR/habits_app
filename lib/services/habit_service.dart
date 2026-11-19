@@ -13,6 +13,11 @@ class HabitService extends ChangeNotifier {
   final Map<String, Map<DateTime, HabitEntry>> _entriesByHabit = {};
   bool _initialized = false;
 
+  /// Bumped every time the list of habits (not the daily entries) changes.
+  /// Used to know when reminders must be rescheduled.
+  int _habitsRevision = 0;
+  int get habitsRevision => _habitsRevision;
+
   bool get isInitialized => _initialized;
 
   /// Alle vaner, sortert etter sortOrder og createdAt. Arkiverte nederst.
@@ -62,6 +67,7 @@ class HabitService extends ChangeNotifier {
     required HabitType type,
     int? targetValue,
     Set<int>? activeWeekdays,
+    int? reminderMinutes,
   }) async {
     final now = DateTime.now();
     final int nextSortOrder;
@@ -81,40 +87,11 @@ class HabitService extends ChangeNotifier {
       isArchived: false,
       createdAt: now,
       sortOrder: nextSortOrder,
+      reminderMinutes: reminderMinutes,
     );
 
     _habits.add(habit);
-    await _saveToStorage();
-    notifyListeners();
-  }
-
-  /// Enkelt oppdatering av navn / malverdi.
-  Future<void> updateHabitBasic(
-    String habitId, {
-    String? name,
-    int? targetValue,
-  }) async {
-    final index = _habits.indexWhere((h) => h.id == habitId);
-    if (index == -1) return;
-
-    final old = _habits[index];
-
-    String newName = old.name;
-    if (name != null && name.trim().isNotEmpty) {
-      newName = name.trim();
-    }
-
-    int newTarget = old.targetValue;
-    if (targetValue != null) {
-      newTarget = targetValue;
-    }
-
-    final updated = old.copyWith(
-      name: newName,
-      targetValue: old.type == HabitType.boolean ? 1 : newTarget,
-    );
-
-    _habits[index] = updated;
+    _habitsRevision++;
     await _saveToStorage();
     notifyListeners();
   }
@@ -129,21 +106,23 @@ class HabitService extends ChangeNotifier {
         updated.name.trim().isEmpty ? old.name : updated.name.trim();
     final newType = updated.type;
     final newTarget = newType == HabitType.boolean ? 1 : updated.targetValue;
-    final newWeekdays = updated.activeWeekdays;
+    final newWeekdays = updated.activeWeekdays.isEmpty
+        ? {1, 2, 3, 4, 5, 6, 7}
+        : updated.activeWeekdays;
 
     _habits[index] = old.copyWith(
       name: newName,
       type: newType,
       targetValue: newTarget,
       activeWeekdays: newWeekdays,
+      reminderMinutes: updated.reminderMinutes,
+      clearReminder: updated.reminderMinutes == null,
     );
+    _habitsRevision++;
 
     await _saveToStorage();
     notifyListeners();
   }
-
-  /// Backwards-compatible alias for deleteHabit().
-  Future<void> removeHabit(String habitId) => deleteHabit(habitId);
 
   /// Arkiver en vane (fjernes fra lister, men beholdes i historikk).
   Future<void> archiveHabit(String habitId) async {
@@ -152,6 +131,7 @@ class HabitService extends ChangeNotifier {
 
     final old = _habits[index];
     _habits[index] = old.copyWith(isArchived: true);
+    _habitsRevision++;
 
     await _saveToStorage();
     notifyListeners();
@@ -163,6 +143,7 @@ class HabitService extends ChangeNotifier {
     if (index == -1) return;
 
     _habits[index] = _habits[index].copyWith(isArchived: false);
+    _habitsRevision++;
 
     await _saveToStorage();
     notifyListeners();
@@ -172,6 +153,7 @@ class HabitService extends ChangeNotifier {
   Future<void> deleteHabit(String habitId) async {
     _habits.removeWhere((h) => h.id == habitId);
     _entriesByHabit.remove(habitId);
+    _habitsRevision++;
     await _saveToStorage();
     notifyListeners();
   }
@@ -281,6 +263,28 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Lowers a count habit by one for [date] (removes the entry at zero).
+  void decrementCount(String habitId, DateTime date) {
+    final normalized = normalizeDate(date);
+    final mapForHabit = _entriesByHabit[habitId];
+    final existing = mapForHabit?[normalized];
+    if (mapForHabit == null || existing == null) return;
+
+    if (existing.value <= 1) {
+      mapForHabit.remove(normalized);
+      if (mapForHabit.isEmpty) _entriesByHabit.remove(habitId);
+    } else {
+      mapForHabit[normalized] = HabitEntry(
+        habitId: existing.habitId,
+        date: existing.date,
+        value: existing.value - 1,
+      );
+    }
+
+    _saveToStorage();
+    notifyListeners();
+  }
+
   void resetForDate(String habitId, DateTime date) {
     final normalized = normalizeDate(date);
     final mapForHabit = _entriesByHabit[habitId];
@@ -295,16 +299,23 @@ class HabitService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Streak bakover fra gitt dato (kun aktive ukedager teller).
-  int streakForHabit(String habitId, DateTime fromDate) {
+  /// Streak backwards from [fromDate] (only active weekdays count).
+  /// If [fromDate] is today and the habit is not done yet, today does not
+  /// break the streak: the day is not over, so the streak from yesterday is
+  /// shown until the user checks it off.
+  int streakForHabit(String habitId, DateTime fromDate, {DateTime? now}) {
     final habitIndex = _habits.indexWhere((h) => h.id == habitId);
     if (habitIndex == -1) return 0;
 
     final habit = _habits[habitIndex];
     int streak = 0;
     DateTime cursor = normalizeDate(fromDate);
+    final today = normalizeDate(now ?? DateTime.now());
+    final earliest =
+        normalizeDate(habit.createdAt).subtract(const Duration(days: 1));
 
-    while (true) {
+    // Ends at the first missed active day (or, as a guard, year 2000).
+    while (!cursor.isBefore(DateTime(2000))) {
       if (habit.activeWeekdays.isNotEmpty &&
           !habit.activeWeekdays.contains(cursor.weekday)) {
         cursor = cursor.subtract(const Duration(days: 1));
@@ -324,6 +335,10 @@ class HabitService extends ChangeNotifier {
       }
 
       if (!ok) {
+        if (cursor == today) {
+          cursor = cursor.subtract(const Duration(days: 1));
+          continue;
+        }
         break;
       }
 
@@ -400,6 +415,9 @@ class HabitService extends ChangeNotifier {
 
   Map<String, dynamic> exportData() {
     return {
+      'app': 'karos_habits',
+      'schemaVersion': 2,
+      'exportedAt': DateTime.now().toIso8601String(),
       'habits': _habits.map((h) => h.toMap()).toList(),
       'entries': _entriesByHabit.values
           .expand((m) => m.values)
@@ -437,6 +455,7 @@ class HabitService extends ChangeNotifier {
     _entriesByHabit
       ..clear()
       ..addAll(newEntries);
+    _habitsRevision++;
 
     await _saveToStorage();
     notifyListeners();

@@ -1,26 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/habit_service.dart';
-import '../models/habit.dart';
+
 import '../l10n/app_localizations.dart';
+import '../models/habit.dart';
+import '../services/habit_service.dart';
+import '../widgets/watermark.dart';
 
 class StatsPage extends StatelessWidget {
   const StatsPage({super.key});
-
-  Widget _watermark(BuildContext context) {
-    return Center(
-      child: Opacity(
-        opacity: 0.06,
-        child: Image.asset(
-          Theme.of(context).brightness == Brightness.dark
-              ? 'assets/watermark_dark.png'
-              : 'assets/watermark_light.png',
-          width: MediaQuery.of(context).size.width * 0.75,
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,18 +40,9 @@ class StatsPage extends StatelessWidget {
             ),
           );
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l.statsTitle),
-        ),
-        body: Stack(
-          children: [
-            _watermark(context),
-            content,
-          ],
-        ),
-      ),
+    return Scaffold(
+      appBar: AppBar(title: Text(l.statsTitle)),
+      body: Stack(children: [const Watermark(), content]),
     );
   }
 }

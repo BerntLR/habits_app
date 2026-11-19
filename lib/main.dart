@@ -1,31 +1,49 @@
-import 'dart:math';
-
+import 'package:bullpeak_intro/bullpeak_intro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'bullpeak/app_accent.dart';
 import 'bullpeak/theme.dart';
-
+import 'l10n/app_locale.dart';
 import 'l10n/app_localizations.dart';
-import 'services/habit_service.dart';
-import 'pages/today_page.dart';
 import 'pages/habits_page.dart';
-import 'pages/stats_page.dart';
 import 'pages/info_page.dart';
+import 'pages/stats_page.dart';
+import 'pages/today_page.dart';
+import 'services/habit_service.dart';
+import 'services/home_widget_service.dart';
+import 'services/reminder_service.dart';
+
+export 'l10n/app_locale.dart' show resolveAppLocale;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const HabitsApp());
 }
 
-/// Follows the phone's language: Norwegian (nb/no/nn) -> nb, everything else
-/// falls back to English.
-Locale resolveAppLocale(Locale? device, Iterable<Locale> supported) {
-  const norwegian = {'nb', 'no', 'nn'};
-  if (device != null && norwegian.contains(device.languageCode)) {
-    return const Locale('nb');
+/// Keeps reminders and the home screen widget in step with the data.
+void _connectSideEffects(HabitService service) {
+  var lastRevision = -1;
+  var lastTodayDone = -1;
+  void sync() {
+    if (!service.isInitialized) return;
+    HomeWidgetService.instance.updateSoon(service);
+    // Reminders depend on the habits and on whether today's are done.
+    final now = DateTime.now();
+    final todayDone = service
+        .habitsForDate(now)
+        .where((h) => service.isHabitDone(h.id, now))
+        .map((h) => h.id.hashCode)
+        .fold<int>(0, (a, b) => a ^ b);
+    if (service.habitsRevision != lastRevision || todayDone != lastTodayDone) {
+      lastRevision = service.habitsRevision;
+      lastTodayDone = todayDone;
+      ReminderService.instance.scheduleSoon(service);
+    }
   }
-  return const Locale('en');
+
+  service.addListener(sync);
 }
 
 class HabitsApp extends StatelessWidget {
@@ -34,7 +52,12 @@ class HabitsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => HabitService()..init(),
+      create: (_) {
+        final service = HabitService();
+        _connectSideEffects(service);
+        service.init();
+        return service;
+      },
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Karos Habits',
@@ -49,99 +72,7 @@ class HabitsApp extends StatelessWidget {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         localeResolutionCallback: resolveAppLocale,
-        home: const IntroFlowPage(),
-      ),
-    );
-  }
-}
-
-class IntroFlowPage extends StatefulWidget {
-  const IntroFlowPage({super.key});
-
-  @override
-  State<IntroFlowPage> createState() => _IntroFlowPageState();
-}
-
-class _IntroFlowPageState extends State<IntroFlowPage>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _fadeController;
-  late final Animation<double> _fadeAnimation;
-
-  late final List<String> _sequence;
-  int _step = 0;
-
-  static const List<String> _comics = [
-    'assets/tegneserie_1.png',
-    'assets/tegneserie_2.png',
-    'assets/tegneserie_3.png',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-
-    final randomComic = _comics[Random().nextInt(_comics.length)];
-    _sequence = [
-      'assets/emblem.png',
-      randomComic,
-    ];
-
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _playSequence();
-    });
-  }
-
-  Future<void> _playSequence() async {
-    for (var i = 0; i < _sequence.length; i++) {
-      if (!mounted) return;
-
-      setState(() => _step = i);
-
-      await _fadeController.forward();
-      await Future.delayed(const Duration(milliseconds: 1500));
-      await _fadeController.reverse();
-    }
-
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeShell()),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final imageWidth = screenWidth * (_step == 0 ? 0.55 : 0.75);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF000000),
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Image.asset(
-            _sequence[_step],
-            width: imageWidth,
-            fit: BoxFit.contain,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-          ),
-        ),
+        home: const BullPeakIntro(next: HomeShell()),
       ),
     );
   }
@@ -154,7 +85,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
@@ -165,11 +96,33 @@ class _HomeShellState extends State<HomeShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // A new day may have started while the app was in the background.
+      final service = context.read<HabitService>();
+      HomeWidgetService.instance.updateSoon(service);
+      ReminderService.instance.scheduleSoon(service);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {

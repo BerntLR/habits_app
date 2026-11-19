@@ -105,8 +105,6 @@
       }
     }
   },
-  "todayTip": "Tip: Tap a habit to mark it as done. For count habits, use + and -.",
-  "resetDay": "Reset this day",
   "increaseByOne": "Increase by 1",
   "archivedTitle": "Archived habits",
   "archivedEmpty": "No archived habits yet.\nArchive a habit from the Habits tab to clean up the list.",
@@ -151,7 +149,7 @@
       }
     }
   },
-  "infoIntro": "Track habits day by day. Review your history in Stats.",
+  "infoIntro": "Add the habits you want to keep and check them off every day on the Today tab. Yes/no habits are done with one tap; count habits are done when you reach the daily goal. Your streak shows how many days in a row you have made it. See your progress per week, month and year under Stats.",
   "backupTitle": "Backup",
   "exportData": "Export data",
   "importData": "Import data",
@@ -169,18 +167,55 @@
   "linkSupport": "Support",
   "linkMoreApps": "More from BullPeak",
   "supportTitle": "Support the developer",
-  "donate": "Donate {price}",
-  "@donate": {
+  "tipsUnavailable": "Tips are not available right now.",
+  "couldNotOpenLink": "Could not open the link.",
+  "couldNotOpenMail": "Could not open e-mail.",
+  "infoRemindersTitle": "Reminders",
+  "infoRemindersText": "Give a habit a reminder time, and the phone notifies you on the chosen days, but only if the habit is not done yet.",
+  "infoWidgetTitle": "Home screen widget",
+  "infoWidgetText": "Add the Karos Habits widget to the home screen to see today's progress at a glance.",
+  "donateNok": "Donate NOK {amount}",
+  "@donateNok": {
     "placeholders": {
-      "price": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "thankYouForSupport": "Thank you for your support!",
+  "decreaseByOne": "Decrease by 1",
+  "weekdaysLabel": "Days",
+  "everyDay": "Every day",
+  "reminderLabel": "Reminder",
+  "reminderOff": "Off",
+  "reminderAt": "Reminder {time}",
+  "@reminderAt": {
+    "placeholders": {
+      "time": {
         "type": "String"
       }
     }
   },
-  "tipsChecking": "Checking if tips are available...",
-  "tipsAvailable": "Tips are available. Thank you for your support!",
-  "tipsUnavailable": "Tips are not available right now.",
-  "thankYou": "Thank you!",
-  "couldNotOpenLink": "Could not open the link",
-  "couldNotOpenMail": "Could not open the mail app"
+  "reminderBody": "Don't forget: {name}",
+  "@reminderBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderPermissionDenied": "Notifications are turned off for Karos Habits. Turn them on in Settings to get reminders.",
+  "pickAtLeastOneDay": "Pick at least one day.",
+  "widgetSummary": "{done} of {total} done",
+  "@widgetSummary": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetNoHabits": "No habits today"
 }
