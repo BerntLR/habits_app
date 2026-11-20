@@ -1,6 +1,6 @@
 # Karos Habits – App Store, versjon 1.1.0
 
-## Nytt i 1.1.0 (What's New) – utkast, ikke sendt
+## Nytt i 1.1.0 (What's New) – sendt til Apple 2026-11-20 (bygg 16), beskrivelsen er oppdatert
 
 **English**
 > • Reminders: give a habit a time and get a notice on the chosen days – only if it is not done yet.
@@ -16,7 +16,6 @@
 > • Rekken viser ikke lenger 0 om morgenen før du har krysset av for i dag.
 > • Nytt blått utseende og en tydeligere Info-side.
 
-Beskrivelsen bør få med påminnelser og widget (se GOOGLE_PLAY.md for tekst).
 
 ---
 
